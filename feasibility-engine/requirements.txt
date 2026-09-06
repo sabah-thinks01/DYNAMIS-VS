@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+geopandas
+shapely
+pytest
+httpx
+pandas
+python-dotenv  
+google-generativeai 

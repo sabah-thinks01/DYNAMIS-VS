@@ -1,0 +1,78 @@
+import { Applicant, OfficerStats } from "@/types";
+
+// TODO: Replace mockApplicants with real API service call from SCA Officer backend
+export const mockApplicants: Applicant[] = [
+  {
+    id: "APP-901",
+    name: "Ramesh Pawar",
+    businessType: "Bio-Fertilizer Production",
+    viabilityScore: 84,
+    schemeTier: "NBCFDC Term Loan - Tier 1",
+    status: "pending",
+    riskLevel: "low",
+    submittedDate: "2026-09-01",
+    projectCost: 350000,
+  },
+  {
+    id: "APP-902",
+    name: "Anita Deshmukh",
+    businessType: "Solar Cold Storage Unit",
+    viabilityScore: 68,
+    schemeTier: "NBCFDC Micro Finance",
+    status: "needs_review",
+    riskLevel: "high",
+    submittedDate: "2026-08-28",
+    projectCost: 480000,
+  },
+  {
+    id: "APP-903",
+    name: "Suresh Jadhav",
+    businessType: "Poultry Feed Processing",
+    viabilityScore: 91,
+    schemeTier: "NBCFDC Mahila Samriddhi",
+    status: "approved",
+    riskLevel: "low",
+    submittedDate: "2026-08-20",
+    projectCost: 250000,
+  },
+  {
+    id: "APP-904",
+    name: "Pooja Shinde",
+    businessType: "Milking Machine & Dairy",
+    viabilityScore: 54,
+    schemeTier: "NBCFDC Term Loan - Tier 2",
+    status: "approved",
+    riskLevel: "high",
+    submittedDate: "2026-08-15",
+    projectCost: 500000,
+  },
+  {
+    id: "APP-905",
+    name: "Vikas Gaikwad",
+    businessType: "Agro Tool Rental Hub",
+    viabilityScore: 76,
+    schemeTier: "NBCFDC Technology Upgradation",
+    status: "needs_review",
+    riskLevel: "medium",
+    submittedDate: "2026-09-03",
+    projectCost: 400000,
+  },
+  {
+    id: "APP-906",
+    name: "Kavita Patil",
+    businessType: "Honey Processing & Packaging",
+    viabilityScore: 88,
+    schemeTier: "NBCFDC Mahila Samriddhi",
+    status: "pending",
+    riskLevel: "medium",
+    submittedDate: "2026-09-04",
+    projectCost: 180000,
+  },
+];
+
+export const mockOfficerStats: OfficerStats = {
+  totalPending: 3,
+  highRiskCount: 2,
+  approvedThisQuarter: 14,
+  totalDisbursedAmount: 4250000,
+};

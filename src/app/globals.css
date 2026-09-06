@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE TOKENS
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --background: #090d16;
+  --foreground: #f1f5f9; /* slate-100 */
+
+  /* ───────────────────────────────────────────────────────────────────────
+     STATUS COLORS — semantic and role-independent.
+     These must NOT be scoped to [data-role] or change with currentRole.
+     "Approved", "Low Risk", "High Viability" are always green, exactly as
+     amber (warning) and rose (error) are always amber/rose.
+
+     Accent colors (--accent-*) are brand chrome and DO change with
+     currentRole. Do not mix status and accent — they serve different
+     purposes and must not be aliased to one another.
+     ─────────────────────────────────────────────────────────────────────── */
+  --status-good:        #10b981;               /* emerald-500 */
+  --status-good-glow:   rgba(16, 185, 129, 0.15);
+  --status-good-border: rgba(16, 185, 129, 0.3);
+  --status-good-bg:     rgba(16, 185, 129, 0.08);
+
+  /* Accent defaults to Entrepreneur palette so nothing breaks before
+     AppShell hydrates and sets data-role on <html>. */
+  --accent-from:           #059669;              /* emerald-600 */
+  --accent-to:             #0d9488;              /* teal-600    */
+  --accent-solid:          #10b981;              /* emerald-500 */
+  --accent-glow:           rgba(16, 185, 129, 0.3);
+  --accent-border:         rgba(16, 185, 129, 0.3);
+  --accent-border-subtle:  rgba(16, 185, 129, 0.08);
+}
+
+/* ── Entrepreneur role (explicit selector mirrors :root defaults) ────────── */
+[data-role="entrepreneur"] {
+  --accent-from:           #059669;
+  --accent-to:             #0d9488;
+  --accent-solid:          #10b981;
+  --accent-glow:           rgba(16, 185, 129, 0.3);
+  --accent-border:         rgba(16, 185, 129, 0.3);
+  --accent-border-subtle:  rgba(16, 185, 129, 0.08);
+}
+
+/* ── SCA Officer role ───────────────────────────────────────────────────── */
+[data-role="sca-officer"] {
+  --accent-from:           #2563eb;              /* blue-600  */
+  --accent-to:             #0284c7;              /* sky-600   */
+  --accent-solid:          #38bdf8;              /* sky-400   */
+  --accent-glow:           rgba(37, 99, 235, 0.3);
+  --accent-border:         rgba(59, 130, 246, 0.3);
+  --accent-border-subtle:  rgba(59, 130, 246, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BODY
+   ───────────────────────────────────────────────────────────────────────── */
+body {
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   GLASS CARD
+   Uses accent variables so the hover glow shifts with the active role.
+   ───────────────────────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.25s ease-in-out;
+}
+
+.glass-card-hover:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5),
+              0 8px 10px -6px var(--accent-border-subtle);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ACCENT UTILITY CLASSES
+   These wrap the CSS variables so Tailwind arbitrary-value syntax isn't
+   needed in every component — use @apply in component files if preferred,
+   or just reference the CSS variables directly via Tailwind's [var(...)]
+   syntax. Both approaches work; the variables are the single source of truth.
+   ───────────────────────────────────────────────────────────────────────── */
+.accent-gradient {
+  background-image: linear-gradient(to right, var(--accent-from), var(--accent-to));
+}
+
+.accent-text {
+  color: var(--accent-solid);
+}
+
+.accent-dot {
+  background-color: var(--accent-solid);
+  box-shadow: 0 0 6px var(--accent-glow);
+}

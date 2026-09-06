@@ -1,0 +1,5 @@
+.env
+.env.local
+feasibility-engine/.env
+node_modules/
+.next/

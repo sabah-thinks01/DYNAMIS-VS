@@ -1,0 +1,35 @@
+{
+  "id": "FR-FF33E1BE",
+  "businessName": "Fertilizer",
+  "location": "Baramati Rural Hub",
+  "viabilityScore": 90,
+  "competitorDensity": {
+    "count": 0,
+    "avgDistanceKm": 0.0,
+    "nearestUnsaturatedArea": "Immediate vicinity (0km)"
+  },
+  "roleModelRealityCheck": {
+    "title": "Role Model Reality Check (Favorable Market)",
+    "story": "Local competitor density (0) is within or below the district median (2.0). The market shows healthy absorption capacity.",
+    "keyTakeaway": "Focus on rapid customer acquisition. First-mover or early-entrant advantages are still available in this sector.",
+    "monthlyTurnover": "₹1,45,000 / month (Healthy demand)"
+  },
+  "swot": {
+    "strengths": [
+      "First-mover advantage with zero existing competitors in the immediate rural area.",
+      "Essential demand driver as fertilizer is a critical input for local agricultural activities."
+    ],
+    "weaknesses": [
+      "High upfront capital requirement for purchasing and storing bulk fertilizer inventory.",
+      "Revenue is heavily dependent on seasonal farming and harvesting cycles."
+    ],
+    "opportunities": [
+      "Early-entrant advantage to establish strong brand loyalty and capture total local market share.",
+      "Ability to expand into adjacent agricultural product lines such as seeds and farming implements."
+    ],
+    "threats": [
+      "Exposure to global chemical supply chain disruptions and wholesale price volatility.",
+      "Adverse weather conditions or drought impacting local farm yields and purchasing power."
+    ]
+  }
+}
