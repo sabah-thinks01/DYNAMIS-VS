@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST='{"app\\\\module1\\\\opportunity-analysis\\\\page.tsx -> @/components/entrepreneur/CompetitorMap":{"id":6410,"files":["static/chunks/939.7ae11731505b5b88.js","static/chunks/410.c63bb932f2df7da8.js"]}}';

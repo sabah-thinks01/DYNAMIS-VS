@@ -419,13 +419,6 @@ export function LoginPage() {
               </div>
             ))}
           </div>
-
-          {/* Footer */}
-          <footer className="border-t border-border-default bg-surface py-4">
-            <div className="max-w-[1200px] mx-auto px-4 md:px-8 text-center text-xs text-muted">
-              DYNAMIS Platform &copy; 2026 &mdash; Ministry of Social Justice &amp; Empowerment / NBCFDC
-            </div>
-          </footer>
         </div>
       </div>
     </div>

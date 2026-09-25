@@ -130,12 +130,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
           {children}
         </main>
-
-        <footer className="border-t border-border-default bg-surface py-4 mt-auto">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-8 text-center text-xs text-muted">
-            DYNAMIS Platform &copy; 2026 — Ministry of Social Justice &amp; Empowerment / NBCFDC
-          </div>
-        </footer>
       </div>
     </div>
   );

@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/geocode/route": "app/api/geocode/route.js",
+  "/module1/market-reach/page": "app/module1/market-reach/page.js",
+  "/module1/product-market-value/page": "app/module1/product-market-value/page.js",
+  "/module1/opportunity-analysis/page": "app/module1/opportunity-analysis/page.js",
+  "/page": "app/page.js",
+  "/officer/console/page": "app/officer/console/page.js",
+  "/module2/calculator/page": "app/module2/calculator/page.js",
+  "/module1/swot-analysis/page": "app/module1/swot-analysis/page.js"
+}
