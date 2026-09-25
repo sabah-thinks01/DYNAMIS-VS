@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { Role } from "@/components/shared/AppShell";
+import { clearSession } from "@/lib/session";
 
 interface RoleSwitcherProps {
   currentRole: Role;
   onRoleChange: (role: Role) => void;
 }
 
-// Each role entry carries its OWN fixed accent colors for the preview dots/rings
-// inside the dropdown. These are intentionally hardcoded here — the dropdown
-// must always show BOTH accents simultaneously so the user can see what they're
-// switching TO. Using CSS variables here would show the same color for both rows.
 const ROLES: {
   value: Role;
   label: string;
@@ -41,6 +39,7 @@ const ROLES: {
 export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -56,16 +55,13 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Avatar trigger button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="true"
         aria-expanded={open}
-        className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 hover:border-slate-600 rounded-full transition-all duration-200"
+        className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-surface hover:bg-surface-hover border border-border-default hover:border-border-strong rounded-full transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
         title="Switch role — navigates to that role's home"
       >
-        {/* Avatar circle — uses the role's own fixed color, not the CSS variable,
-            so it always reflects that specific role regardless of which is active */}
         <span
           className={`
             w-7 h-7 rounded-full flex items-center justify-center
@@ -76,32 +72,28 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
         >
           {active.short}
         </span>
-        <span className="text-xs text-slate-300 font-medium hidden sm:block max-w-[120px] truncate">
+        <span className="text-xs text-main font-medium hidden sm:block max-w-[120px] truncate">
           {active.value === "entrepreneur" ? "Entrepreneur" : "SCA Officer"}
         </span>
         <svg
-          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden z-50">
-          {/* Header */}
-          <div className="px-4 py-3 border-b border-slate-800">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        <div className="absolute right-0 top-full mt-2 w-72 bg-surface border border-border-default rounded-xl shadow-card overflow-hidden z-50">
+          <div className="px-4 py-3 border-b border-border-default">
+            <p className="text-[10px] font-bold text-muted uppercase tracking-widest">
               Switch Role
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               Navigates to that role&apos;s home — no real auth yet.
             </p>
           </div>
 
-          {/* Role options — each shows its OWN fixed-color dot so you can
-              always distinguish both options regardless of which is active */}
           <div className="p-2">
             {ROLES.map((role) => {
               const isActive = currentRole === role.value;
@@ -114,23 +106,21 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
                   }}
                   className={`
                     w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left
-                    transition-colors duration-150
+                    transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                     ${isActive
-                      ? "bg-slate-800 text-slate-100"
-                      : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-100"
+                      ? "bg-surface-hover text-main"
+                      : "text-main hover:bg-surface-hover"
                     }
                   `}
                 >
-                  {/* Role avatar — always role-specific color */}
                   <span
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white shrink-0 ${role.bgClass}`}
                   >
                     {role.short}
                   </span>
 
-                  <span className="text-xs font-medium flex-1">{role.label}</span>
+                  <span className="text-xs font-medium flex-1 truncate">{role.label}</span>
 
-                  {/* Checkmark on active row uses the role's own dot color */}
                   {isActive && (
                     <svg
                       className={`w-4 h-4 shrink-0 ${role.dotClass.replace("bg-", "text-")}`}
@@ -144,19 +134,20 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
             })}
           </div>
 
-          {/* Footer TODO callout */}
-          <div className="px-4 py-2.5 border-t border-slate-800 bg-slate-950/40">
-            {/*
-             * TODO: Replace this local-state role switcher with the authenticated user's role
-             * from the real auth session (e.g. useAuth().role or JWT claims) once
-             * Authentication + RBAC is implemented. At that point:
-             *   1. Remove this switcher entirely (or keep as admin impersonation tool).
-             *   2. Read role from auth context in AppShell.tsx.
-             *   3. Hard-gate routes in middleware.ts (not just visual de-emphasis).
-             */}
-            <p className="text-[10px] text-slate-600 italic leading-relaxed">
-              ⚠ Preview only — role selection is local state. Real auth will replace this.
-            </p>
+          <div className="px-2 pb-2 border-t border-border-default pt-2">
+            <button
+              onClick={() => {
+                clearSession();
+                setOpen(false);
+                router.replace("/");
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-main hover:bg-surface-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <svg className="w-4 h-4 shrink-0 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="text-xs font-medium">Log out</span>
+            </button>
           </div>
         </div>
       )}

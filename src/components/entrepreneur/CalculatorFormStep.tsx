@@ -28,17 +28,17 @@ export function CalculatorFormStep({
 }: CalculatorFormStepProps) {
   // Focus ring uses accent variable so it shifts with role theme
   const inputClassName =
-    "w-full px-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-slate-100 " +
-    "placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent-solid)]/50 " +
-    "focus:border-[var(--accent-solid)] focus:outline-none transition-colors";
-  const labelClassName = "block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5";
+    "w-full min-h-[44px] px-4 py-2.5 bg-surface border border-border-default/80 rounded-xl text-sm text-main " +
+    "placeholder-muted focus:ring-2 focus:ring-[var(--accent)]/50 " +
+    "focus:border-accent-strong focus:outline-none transition-colors";
+  const labelClassName = "block text-xs font-semibold text-muted uppercase tracking-wider mb-1.5";
 
   return (
-    <div className="glass-card rounded-2xl p-6 shadow-lg border-slate-700/50">
+    <div className="app-card rounded-2xl p-6 shadow-lg border-border-default">
       {/* Step 1 */}
       {step === 1 && (
         <div className="space-y-5">
-          <h3 className="text-base font-bold text-slate-100 border-b border-slate-700/60 pb-2">
+          <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
             Step 1: Select Business Activity &amp; Social Category
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -71,7 +71,7 @@ export function CalculatorFormStep({
       {/* Step 2 */}
       {step === 2 && (
         <div className="space-y-5">
-          <h3 className="text-base font-bold text-slate-100 border-b border-slate-700/60 pb-2">
+          <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
             Step 2: Capital Requirement &amp; Household Income
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -83,7 +83,7 @@ export function CalculatorFormStep({
                 onChange={(e) => onChange({ projectCost: Number(e.target.value) })}
                 className={inputClassName} placeholder="e.g. 350000"
               />
-              <span className="text-[10px] text-slate-500 mt-1.5 block">
+              <span className="text-[10px] text-muted mt-1.5 block">
                 NBCFDC ceiling: ₹50,00,000 for Term Loan / ₹1,40,000 for Micro Finance
               </span>
             </div>
@@ -95,7 +95,7 @@ export function CalculatorFormStep({
                 onChange={(e) => onChange({ annualFamilyIncome: Number(e.target.value) })}
                 className={inputClassName} placeholder="e.g. 180000"
               />
-              <span className="text-[10px] text-slate-500 mt-1.5 block">
+              <span className="text-[10px] text-muted mt-1.5 block">
                 Income ceiling applies — see scheme guidelines for current limit
               </span>
             </div>
@@ -106,7 +106,7 @@ export function CalculatorFormStep({
       {/* Step 3 */}
       {step === 3 && (
         <div className="space-y-5">
-          <h3 className="text-base font-bold text-slate-100 border-b border-slate-700/60 pb-2">
+          <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
             Step 3: State Channelizing Agency (SCA) Jurisdiction
           </h3>
           <div>
@@ -125,37 +125,37 @@ export function CalculatorFormStep({
       {/* Step 4 */}
       {step === 4 && (
         <div className="space-y-5">
-          <h3 className="text-base font-bold text-slate-100 border-b border-slate-700/60 pb-2">
+          <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
             Step 4: Review Inputs — Scheme Result Calculated Automatically
           </h3>
-          <div className="bg-slate-900/50 p-5 rounded-xl border border-slate-700/50 space-y-3 text-sm">
-            <div className="flex justify-between border-b border-slate-800/80 pb-2">
-              <span className="text-slate-400">Business Activity:</span>
-              <span className="font-semibold text-slate-100">{formData.businessType}</span>
+          <div className="bg-surface p-5 rounded-xl border border-border-default space-y-3 text-sm">
+            <div className="flex justify-between border-b border-border-default pb-2">
+              <span className="text-muted">Business Activity:</span>
+              <span className="font-semibold text-main">{formData.businessType}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-800/80 pb-2">
-              <span className="text-slate-400">Category:</span>
-              <span className="font-semibold text-slate-100">{formData.category}</span>
+            <div className="flex justify-between border-b border-border-default pb-2">
+              <span className="text-muted">Category:</span>
+              <span className="font-semibold text-main">{formData.category}</span>
             </div>
-            <div className="flex justify-between border-b border-slate-800/80 pb-2">
-              <span className="text-slate-400">Project Cost:</span>
-              {/* accent-text utility class — shifts with role */}
-              <span className="font-semibold accent-text">
+            <div className="flex justify-between border-b border-border-default pb-2">
+              <span className="text-muted">Project Cost:</span>
+              {/* text-accent-strong utility class — shifts with role */}
+              <span className="font-semibold text-accent-strong">
                 ₹{(formData.projectCost || 0).toLocaleString("en-IN")}
               </span>
             </div>
-            <div className="flex justify-between border-b border-slate-800/80 pb-2">
-              <span className="text-slate-400">Annual Income:</span>
-              <span className="font-semibold text-slate-100">
+            <div className="flex justify-between border-b border-border-default pb-2">
+              <span className="text-muted">Annual Income:</span>
+              <span className="font-semibold text-main">
                 ₹{(formData.annualFamilyIncome || 0).toLocaleString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between pb-1">
-              <span className="text-slate-400">State SCA:</span>
-              <span className="font-semibold text-slate-100">{formData.state}</span>
+              <span className="text-muted">State SCA:</span>
+              <span className="font-semibold text-main">{formData.state}</span>
             </div>
           </div>
-          <p className="text-xs font-medium flex items-center space-x-2 accent-text">
+          <p className="text-xs font-medium flex items-center space-x-2 text-accent-strong">
             <span className="accent-dot w-1.5 h-1.5 rounded-full animate-pulse" />
             <span>The scheme result panel on the right updates in real time.</span>
           </p>
@@ -163,13 +163,13 @@ export function CalculatorFormStep({
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-8 pt-5 border-t border-slate-700/60">
+      <div className="flex items-center justify-between mt-8 pt-5 border-t border-border-default/60">
         <button
           type="button" onClick={onPrev} disabled={step === 1}
-          className={`px-5 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 ${
+          className={`min-h-[44px] px-5 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 ${
             step === 1
-              ? "bg-slate-800/30 text-slate-600 cursor-not-allowed border border-transparent"
-              : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 shadow-sm"
+              ? "bg-surface-subtle/30 text-muted/50 cursor-not-allowed border border-transparent"
+              : "bg-surface-subtle text-main hover:bg-surface-hover hover:text-main border border-border-default shadow-sm"
           }`}
         >
           ← Previous Step
@@ -179,14 +179,13 @@ export function CalculatorFormStep({
           /* Primary CTA uses accent gradient */
           <button
             type="button" onClick={onNext}
-            className="px-6 py-2.5 hover:opacity-90 transition-opacity text-white text-xs font-bold rounded-xl shadow-md accent-gradient"
+            className="min-h-[44px] px-6 py-2.5 hover:opacity-90 transition-opacity text-white text-xs font-bold rounded-xl shadow-md bg-accent-strong text-white"
           >
             Next Step →
           </button>
         ) : (
           <span
-            className="px-4 py-2.5 text-xs font-bold rounded-xl flex items-center space-x-2 accent-text"
-            style={{ backgroundColor: "color-mix(in srgb, var(--accent-from) 15%, transparent)", borderWidth: "1px", borderStyle: "solid", borderColor: "var(--accent-border)" }}
+            className="min-h-[44px] px-4 py-2.5 text-xs font-bold rounded-xl flex items-center space-x-2 text-accent-strong bg-accent-subtle border border-accent-strong/40"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

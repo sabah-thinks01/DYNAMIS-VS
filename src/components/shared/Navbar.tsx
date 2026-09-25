@@ -2,19 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import type { Role } from "@/components/shared/AppShell";
 import { ROLE_HOME } from "@/components/shared/AppShell";
-import { Map, Lightbulb, ListTodo, Briefcase, Calculator, ShieldHalf } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// TODO: Auth integration point
-// Replace the `currentRole` prop (received from AppShell's local state) with
-// the authenticated user's role once the Auth service is implemented.
-//   const { role } = useAuth();   // e.g. 'entrepreneur' | 'officer'
-// ---------------------------------------------------------------------------
+import { Map, Lightbulb, ListTodo, Briefcase, Calculator, ShieldHalf, X } from "lucide-react";
 
 interface SidebarProps {
   currentRole: Role;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const MODULE1_LINKS = [
@@ -32,107 +28,172 @@ const OFFICER_LINKS = [
   { href: "/officer/console", label: "SCA Officer Console", icon: ShieldHalf },
 ];
 
-// ── Shared active link style (inline — cannot use Tailwind for CSS vars) ──
-const activeLinkStyle = {
-  backgroundImage:
-    "linear-gradient(to right, color-mix(in srgb, var(--accent-from) 90%, transparent), color-mix(in srgb, var(--accent-from) 80%, transparent))",
-  borderWidth:  "1px",
-  borderStyle:  "solid",
-  borderColor:  "var(--accent-border)",
-};
-
-/** A nav link that is fully interactive and navigates. */
 function ActiveNavLink({
-  href, label, icon: Icon, isActive,
-}: { href: string; label: string; icon: any; isActive: boolean }) {
+  href, label, icon: Icon, isActive, onClick
+}: { href: string; label: string; icon: any; isActive: boolean; onClick?: () => void }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`
-        flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-        transition-all duration-150
-        ${isActive ? "text-white shadow-md" : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"}
+        flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-r-lg text-sm font-medium
+        transition-colors duration-150 relative border-l-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
+        ${isActive 
+          ? "bg-accent-subtle text-accent-strong border-accent-strong" 
+          : "text-muted hover:text-main hover:bg-surface-hover border-transparent"}
       `}
-      style={isActive ? activeLinkStyle : undefined}
     >
-      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-slate-500"}`} />
+      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-accent-strong" : "text-muted"}`} />
       <span>{label}</span>
     </Link>
   );
 }
 
-export function Navbar({ currentRole }: SidebarProps) {
+export function Navbar({ currentRole, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !navRef.current) return;
+    
+    // Store previous focus
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    
+    const focusableElements = navRef.current.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement?.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement?.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    
+    // Focus first element on open
+    const closeBtn = navRef.current.querySelector('button[aria-label="Close menu"]') as HTMLElement;
+    closeBtn?.focus();
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      // Restore focus on close
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  const sidebarClasses = `
+    fixed inset-y-0 left-0 w-64 z-50 flex flex-col bg-surface border-r border-border-default transition-transform duration-200 ease-in-out
+    ${isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
+  `;
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 z-40 flex flex-col bg-slate-900/95 border-r border-slate-800/80">
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-main/20 backdrop-blur-sm z-40 md:hidden" 
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* ── Brand ── */}
-      <div className="h-16 flex items-center px-4 border-b border-slate-800/80 shrink-0">
-        <Link href={ROLE_HOME[currentRole]} className="flex items-center gap-2.5">
-          {/* Brand pill uses accent gradient — shifts with role */}
-          <span
-            className="text-white font-extrabold text-base px-2.5 py-1 rounded-lg tracking-wide shadow-md"
-            style={{ backgroundImage: "linear-gradient(to right, var(--accent-from), var(--accent-to))" }}
+      <aside ref={navRef} className={sidebarClasses}>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-border-default shrink-0">
+          <Link href={ROLE_HOME[currentRole]} className="flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+            <span className="text-white font-extrabold text-base px-2.5 py-1 rounded-lg tracking-wide shadow-md bg-accent-strong">
+              DYNAMIS
+            </span>
+            <span className="text-[10px] text-muted font-medium leading-tight hidden sm:block">
+              Rural Credit<br />Platform
+            </span>
+          </Link>
+          <button 
+            className="md:hidden p-1.5 text-muted hover:text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded-md"
+            onClick={onClose}
+            aria-label="Close menu"
           >
-            DYNAMIS
-          </span>
-          <span className="text-[10px] text-slate-500 font-medium leading-tight hidden sm:block">
-            Rural Credit<br />Platform
-          </span>
-        </Link>
-      </div>
-
-      {/* ── Nav sections ── */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-8">
-
-        {/* ─── Module 1 ─── */}
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5 px-2 mb-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Module 1 — Feasibility
-            </p>
-          </div>
-          {MODULE1_LINKS.map(({ href, label, icon }) =>
-            <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} />
-          )}
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* ─── Module 2 ─── */}
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5 px-2 mb-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Module 2
-            </p>
-          </div>
-          {MODULE2_LINKS.map(({ href, label, icon }) =>
-            <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} />
-          )}
-        </div>
-
-        {/* ─── Government (Officer Only) ─── */}
-        {currentRole === "officer" && (
-          <div className="space-y-0.5 border-t border-slate-800/80 pt-4">
-            <div className="flex items-center gap-1.5 px-2 mb-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Government
+        <nav className="flex-1 overflow-y-auto py-4 space-y-8">
+          <div className="space-y-1 pr-3">
+            <div className="px-4 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
+                Module 1 — Feasibility
               </p>
             </div>
-            {OFFICER_LINKS.map(({ href, label, icon }) =>
-              <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} />
+            {MODULE1_LINKS.map(({ href, label, icon }) =>
+              <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} onClick={() => isOpen && onClose()} />
             )}
           </div>
-        )}
-      </nav>
 
-      {/* ── Sidebar footer: live status dot ── */}
-      <div className="shrink-0 px-4 py-3 border-t border-slate-800/80">
-        <div className="flex items-center gap-2 text-[10px] text-slate-500">
-          <span className="accent-dot w-1.5 h-1.5 rounded-full animate-pulse" />
-          Platform online — Mock data
+          <div className="space-y-1 pr-3">
+            <div className="px-4 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
+                Module 2
+              </p>
+            </div>
+            {MODULE2_LINKS.map(({ href, label, icon }) =>
+              <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} onClick={() => isOpen && onClose()} />
+            )}
+          </div>
+
+          {currentRole === "officer" && (
+            <div className="space-y-1 border-t border-border-default pt-4 pr-3">
+              <div className="px-4 mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
+                  Government
+                </p>
+              </div>
+              {OFFICER_LINKS.map(({ href, label, icon }) =>
+                <ActiveNavLink key={href} href={href} label={label} icon={icon} isActive={pathname === href} onClick={() => isOpen && onClose()} />
+              )}
+            </div>
+          )}
+        </nav>
+
+        <div className="shrink-0 px-4 py-4 border-t border-border-default bg-surface">
+          <div className="flex items-center gap-2 text-[10px] text-muted font-medium">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-status-good" />
+            Platform online — Mock data
+          </div>
+          <p className="text-[10px] text-muted/70 mt-1">v0.1.0-dev</p>
         </div>
-        <p className="text-[10px] text-slate-700 mt-0.5">v0.1.0-dev</p>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { LoginPage } from "@/components/auth/LoginPage";
 
 export default function HomePage() {
-  redirect("/module1/market-reach");
+  return <LoginPage />;
 }

@@ -4,86 +4,135 @@ import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Navbar } from "@/components/shared/Navbar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { Menu } from "lucide-react";
+import { getSession } from "@/lib/session";
 
-// ---------------------------------------------------------------------------
-// Role type — exported so Navbar and RoleSwitcher can import it from one place
-// without creating a circular dependency.
-// ---------------------------------------------------------------------------
 export type Role = "entrepreneur" | "officer";
 
-// Map Role values to the data-role attribute values used in globals.css.
 const DATA_ROLE: Record<Role, string> = {
   entrepreneur: "entrepreneur",
   officer:      "sca-officer",
 };
 
-// Default landing route for each role — used both for auto-navigation on
-// role switch and for redirect enforcement when a user lands on a wrong route.
 export const ROLE_HOME: Record<Role, string> = {
   entrepreneur: "/module1/market-reach",
   officer:      "/officer/console",
 };
 
-// ---------------------------------------------------------------------------
-// AppShell — client boundary that owns `currentRole` state.
-//
-// layout.tsx is intentionally kept as a Server Component (no "use client")
-// for Next.js metadata + font loading. AppShell is the thin client wrapper
-// that provides role-aware UI to the rest of the shell.
-//
-// TEMPORARY ROLE-BASED ROUTE GATE
-// The useEffect below enforces that non-officers cannot view /officer routes.
-// Modules 1 and 2 are shared and completely ungated.
-//
-// TODO: Replace this client-side redirect with real middleware-level auth once
-// authentication is implemented.
-// ---------------------------------------------------------------------------
+/** Centered full-page spinner shown while the session check is in flight. */
+function SessionCheckingSpinner() {
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center bg-page"
+      aria-busy="true"
+      aria-label="Checking session"
+    >
+      <div className="w-8 h-8 border-4 border-border-default border-t-accent-strong rounded-full animate-spin" />
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [currentRole, setCurrentRole] = useState<Role>("entrepreneur");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  /**
+   * sessionChecked starts false.
+   * While false, protected routes render ONLY the spinner — never children.
+   * Flips to true once we've read sessionStorage (synchronous, sub-ms).
+   */
+  const [sessionChecked, setSessionChecked] = useState(false);
+
   const router   = useRouter();
   const pathname = usePathname();
 
-  // ── 1. Sync CSS accent-variable scope ──────────────────────────────────
-  useEffect(() => {
-    document.documentElement.setAttribute("data-role", DATA_ROLE[currentRole]);
-  }, [currentRole]);
+  const isLoginRoute = pathname === "/";
 
-  // ── 2. Temporary client-side route gate (Asymmetric) ───────────────────
-  // Modules 1 & 2 are open to both. /officer/ is restricted to sca-officers.
+  // ─── Session guard ────────────────────────────────────────────────────────
+  useEffect(() => {
+    // Login page bypasses the guard entirely — always show it.
+    if (isLoginRoute) {
+      setSessionChecked(true);
+      return;
+    }
+
+    const session = getSession();
+    if (!session) {
+      // No session: redirect to login. Keep sessionChecked=false so we never
+      // render children while the navigation is pending.
+      router.replace("/");
+    } else {
+      // Valid session: seed the role, then unlock rendering.
+      setCurrentRole(session.role);
+      setSessionChecked(true);
+    }
+  // pathname (via isLoginRoute) and router are stable references; listing them
+  // prevents the exhaustive-deps lint warning without causing extra runs.
+  }, [isLoginRoute, router]);
+
+  // ─── Existing role-guard (Entrepreneur can't visit /officer/*) ───────────
   useEffect(() => {
     if (currentRole === "entrepreneur" && pathname.startsWith("/officer")) {
       router.replace(ROLE_HOME.entrepreneur);
     }
   }, [currentRole, pathname, router]);
 
-  // ── 3. Role-change handler — updates state AND navigates ───────────────
+  // ─── Close mobile menu on navigation ─────────────────────────────────────
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // ─── data-role attribute sync ─────────────────────────────────────────────
+  useEffect(() => {
+    document.documentElement.setAttribute("data-role", DATA_ROLE[currentRole]);
+  }, [currentRole]);
+
   function handleRoleChange(newRole: Role) {
     setCurrentRole(newRole);
     router.push(ROLE_HOME[newRole]);
   }
 
+  // ── LOGIN ROUTE: render children bare (no sidebar/header/footer) ──────────
+  // The LoginPage carries its own full-page layout.
+  if (isLoginRoute) {
+    return <>{children}</>;
+  }
+
+  // ── PROTECTED ROUTE, CHECK IN FLIGHT: show spinner only ──────────────────
+  // sessionChecked stays false until getSession() resolves (or redirect fires).
+  // Children are never rendered in this branch, so there is no flash of
+  // protected content.
+  if (!sessionChecked) {
+    return <SessionCheckingSpinner />;
+  }
+
+  // ── PROTECTED ROUTE, SESSION CONFIRMED: render full shell ────────────────
   return (
-    <div className="flex min-h-screen bg-[#090d16]">
+    <div className="flex min-h-screen bg-page text-main">
+      <Navbar currentRole={currentRole} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
-      {/* ── Fixed left sidebar ── */}
-      <Navbar currentRole={currentRole} />
+      <div className="flex flex-col flex-1 md:ml-64 min-h-screen min-w-0 transition-all duration-200">
+        <header className="sticky top-0 z-30 h-16 flex items-center justify-between md:justify-end px-4 md:px-6 bg-surface/90 backdrop-blur-md border-b border-border-default">
+          <button
+            className="md:hidden p-2 -ml-2 text-muted hover:text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded-md"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
 
-      {/* ── Content column: offset by sidebar width (w-64 = 256px) ── */}
-      <div className="flex flex-col flex-1 ml-64 min-h-screen">
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
+          </div>
+        </header>
 
-        {/* Sticky top strip — role switcher lives here, top-right of content area */}
-        <div className="sticky top-0 z-30 flex items-center justify-end px-6 py-2.5 bg-[#090d16]/90 backdrop-blur-sm border-b border-slate-800/60">
-          <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
-        </div>
-
-        {/* Main page content */}
-        <main className="flex-1 w-full max-w-7xl mx-auto px-6 sm:px-8 py-8">
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
           {children}
         </main>
 
-        {/* Footer */}
-        <footer className="border-t border-slate-800/80 bg-[#090d16] py-4 mt-auto">
-          <div className="max-w-7xl mx-auto px-6 text-center text-xs text-slate-600">
+        <footer className="border-t border-border-default bg-surface py-4 mt-auto">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8 text-center text-xs text-muted">
             DYNAMIS Platform &copy; 2026 — Ministry of Social Justice &amp; Empowerment / NBCFDC
           </div>
         </footer>

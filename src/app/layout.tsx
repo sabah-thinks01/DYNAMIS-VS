@@ -22,8 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={plusJakarta.variable}>
-      <body className="bg-[#090d16] text-slate-100 antialiased font-sans">
+    <html lang="en" className={plusJakarta.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('dynamis-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else{document.documentElement.setAttribute('data-theme','light');}}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="bg-page text-main antialiased font-sans transition-colors duration-200">
         <AppShell>{children}</AppShell>
       </body>
     </html>

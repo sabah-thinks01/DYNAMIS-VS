@@ -14,38 +14,41 @@ export function CalculatorStepIndicator({ currentStep, onStepClick }: Props) {
   ];
 
   return (
-    <div className="w-full flex items-center justify-between relative before:absolute before:inset-0 before:top-1/2 before:-translate-y-1/2 before:h-0.5 before:bg-slate-800 before:z-0">
+    <div className="w-full flex items-start justify-between relative mb-4">
+      {/* Background Line */}
+      <div className="absolute left-0 right-0 top-[22px] h-[2px] bg-surface-subtle z-0" />
+      
       {steps.map((step) => {
         const isCompleted = currentStep > step.num;
         const isCurrent   = currentStep === step.num;
 
         return (
-          <div key={step.num} className="relative flex flex-col items-center">
+          <div key={step.num} className="relative flex flex-col items-center z-10 flex-1 max-w-[90px]">
             <button
               onClick={() => { if (isCompleted) onStepClick(step.num); }}
               disabled={!isCompleted}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold relative z-10 transition-all border-2"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold transition-all border-2 mb-2"
               style={
                 isCompleted
                   ? {
-                      backgroundColor: "var(--accent-from)",
-                      borderColor:      "var(--accent-from)",
-                      color:            "#fff",
+                      backgroundColor: "var(--accent-strong)",
+                      borderColor:      "var(--accent-strong)",
+                      color:            "var(--text-inverse)",
                       boxShadow:        "0 4px 12px -2px var(--accent-glow)",
                       cursor:           "pointer",
                     }
                   : isCurrent
                   ? {
-                      backgroundColor: "rgb(15 23 42)",   /* slate-900 */
-                      borderColor:     "var(--accent-solid)",
-                      color:           "var(--accent-solid)",
+                      backgroundColor: "var(--bg-surface)",
+                      borderColor:     "var(--accent-strong)",
+                      color:           "var(--accent-strong)",
                       boxShadow:       "0 0 15px var(--accent-glow)",
                       cursor:          "default",
                     }
                   : {
-                      backgroundColor: "rgb(15 23 42)",
-                      borderColor:     "rgb(51 65 85)",    /* slate-700 */
-                      color:           "rgb(100 116 139)", /* slate-500 */
+                      backgroundColor: "var(--bg-surface)",
+                      borderColor:     "var(--border-default)",
+                      color:           "var(--text-muted)",
                       cursor:          "default",
                     }
               }
@@ -60,13 +63,13 @@ export function CalculatorStepIndicator({ currentStep, onStepClick }: Props) {
             </button>
 
             <span
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-semibold whitespace-nowrap transition-colors"
+              className="text-xs font-semibold text-center leading-tight transition-colors"
               style={{
                 color: isCompleted
-                  ? "var(--accent-solid)"
+                  ? "var(--accent-strong)"
                   : isCurrent
-                  ? "rgb(241 245 249)"  /* slate-100 */
-                  : "rgb(100 116 139)", /* slate-500 */
+                  ? "var(--text-main)"
+                  : "var(--text-muted)",
               }}
             >
               {step.label}

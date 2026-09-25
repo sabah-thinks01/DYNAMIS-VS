@@ -14,18 +14,18 @@ export function SWOTSection({ swot }: Props) {
   ];
 
   return (
-    <div className="glass-card rounded-2xl p-6 border-slate-700/80">
-      <h3 className="text-sm font-bold text-slate-200 border-b border-slate-700/60 pb-2 mb-4">
+    <div className="app-card rounded-2xl p-6 border-border-default/80">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted border-b border-border-default/60 pb-3 mb-5">
         AI-Generated SWOT Analysis
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {quadrants.map((quad) => {
           // Dark mode friendly color mapping
           const colors = {
-            emerald: "bg-emerald-950/20 border-emerald-800/40 text-emerald-400",
-            amber: "bg-amber-950/20 border-amber-800/40 text-amber-400",
-            teal: "bg-teal-950/20 border-teal-800/40 text-teal-400",
-            rose: "bg-rose-950/20 border-rose-800/40 text-rose-400",
+            emerald: "bg-[var(--status-good-bg)] border-[var(--status-good-border)] text-[var(--status-good)]",
+            amber: "bg-[var(--status-warning-bg)] border-[var(--status-warning-border)] text-[var(--status-warning)]",
+            teal: "bg-surface-subtle border-border-default text-main",
+            rose: "bg-[var(--status-error-bg)] border-[var(--status-error-border)] text-[var(--status-error)]",
           }[quad.color];
 
           return (
@@ -35,7 +35,7 @@ export function SWOTSection({ swot }: Props) {
               </h4>
               <ul className="space-y-1.5">
                 {quad.items.map((item, idx) => (
-                  <li key={idx} className="text-xs text-slate-300 flex items-start">
+                  <li key={idx} className="text-xs text-main flex items-start">
                     <span className="mr-2 opacity-50">•</span>
                     <span>{item}</span>
                   </li>

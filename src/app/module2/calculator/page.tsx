@@ -50,24 +50,16 @@ export default function FinancialCalculatorPage() {
       projectCost: formData.projectCost,
       state: formData.state,
     });
-  }, [
-    formData.annualFamilyIncome,
-    formData.category,
-    formData.projectCost,
-    formData.state,
-  ]);
+  }, [formData]);
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="border-b border-slate-800/80 pb-4">
-        <span className="text-xs font-semibold text-emerald-400 bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-800/50">
-          Module 2 — Live
-        </span>
-        <h1 className="text-2xl font-extrabold text-slate-100 mt-1">
+      <div className="pb-6 border-b border-border-default">
+        <h1 className="page-title">
           Financial Scheme &amp; EMI Calculator
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="page-subtitle">
           Determine NBCFDC scheme fit, estimated margin money split, and projected loan repayment
           — all figures are indicative pending rate confirmation
         </p>

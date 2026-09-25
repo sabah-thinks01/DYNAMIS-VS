@@ -7,90 +7,94 @@ export default function MarketReachPage() {
   const reach = mockMarketReach;
 
   return (
-    <div className="space-y-6">
-      <div className="border-b border-slate-800/80 pb-4">
-        <span
-          className="text-xs font-semibold px-2.5 py-0.5 rounded-full accent-text"
-          style={{
-            backgroundColor: "color-mix(in srgb, var(--accent-from) 12%, transparent)",
-            borderWidth: "1px", borderStyle: "solid", borderColor: "var(--accent-border)",
-          }}
-        >
-          Module 1
-        </span>
-        <h1 className="text-2xl font-extrabold text-slate-100 mt-1">
+    <div className="space-y-8 pb-24 md:pb-0">
+      {/* Page Header */}
+      <div className="pb-6 border-b border-border-default">
+        <h1 className="page-title">
           Market Reach
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="page-subtitle">
           Distribution radius and market size estimates for {report.businessName}.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* 3 Stat cards: 3 columns ≥1024px (lg:grid-cols-3), single column below */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Estimated Reach Radius */}
-        <div className="glass-card rounded-2xl p-6 border border-slate-700/50 shadow-sm flex flex-col gap-2">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide">Estimated Reach Radius</h3>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-4xl font-extrabold text-slate-100">{reach.estimatedReachRadiusKm}</span>
-            <span className="text-base font-semibold text-slate-400">km</span>
+        <div className="app-card p-6 flex flex-col justify-between gap-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Estimated Reach Radius
+            </h3>
+            <div className="flex items-baseline gap-1.5 mt-2">
+              <span className="text-4xl font-semibold text-main">
+                {reach.estimatedReachRadiusKm}
+              </span>
+              <span className="text-sm font-normal text-muted">km</span>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+          <p className="text-sm text-muted leading-relaxed">
             Effective service area based on standard local distribution logistics.
           </p>
         </div>
 
         {/* Population Within Reach */}
-        <div className="glass-card rounded-2xl p-6 border border-slate-700/50 shadow-sm flex flex-col gap-2">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide">Population in Reach</h3>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-4xl font-extrabold text-slate-100">
-              {new Intl.NumberFormat("en-IN").format(reach.populationInReach)}
-            </span>
+        <div className="app-card p-6 flex flex-col justify-between gap-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Population in Reach
+            </h3>
+            <div className="flex items-baseline gap-1 mt-2">
+              <span className="text-4xl font-semibold text-main">
+                {new Intl.NumberFormat("en-IN").format(reach.populationInReach)}
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+          <p className="text-sm text-muted leading-relaxed">
             Total addressable population within the estimated {reach.estimatedReachRadiusKm} km radius.
           </p>
         </div>
 
         {/* Footfall Potential */}
-        <div className="glass-card rounded-2xl p-6 border border-slate-700/50 shadow-sm flex flex-col gap-2">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide">Footfall Potential</h3>
-          <div className="mt-2 flex items-center">
-            <span className={`px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider
-              ${reach.footfallPotential === "High" ? "bg-emerald-950/50 text-[var(--status-good)] border border-[var(--status-good-border)]" : 
-                reach.footfallPotential === "Medium" ? "bg-amber-950/50 text-amber-400 border border-amber-800/50" : 
-                "bg-rose-950/50 text-rose-400 border border-rose-800/50"}`}
-            >
-              {reach.footfallPotential}
-            </span>
+        <div className="app-card p-6 flex flex-col justify-between gap-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Footfall Potential
+            </h3>
+            <div className="mt-3 flex items-center">
+              <span className="status-pill">
+                {reach.footfallPotential}
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+          <p className="text-sm text-muted leading-relaxed">
             Projected relative to regional averages for this business category.
           </p>
         </div>
+      </div>
 
-        {/* Driving Factors */}
-        <div className="md:col-span-2 lg:col-span-3 glass-card rounded-2xl p-6 border border-slate-700/50 shadow-sm flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide">Key Reach Drivers</h3>
-          <ul className="space-y-2 mt-1">
-            {reach.drivingFactors.map((factor, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-300">
-                <span className="text-slate-500 mt-0.5">•</span>
-                <span>{factor}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {/* Key Reach Drivers: one neutral card, list items with small neutral marker, comfortable line height (1.6), 16px text */}
+      <div className="app-card p-6 flex flex-col gap-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+          Key Reach Drivers
+        </h3>
+        <ul className="space-y-3">
+          {reach.drivingFactors.map((factor, idx) => (
+            <li key={idx} className="flex items-start gap-3 text-base text-main leading-[1.6]">
+              <span className="w-1.5 h-1.5 rounded-full bg-border-strong mt-2.5 shrink-0" aria-hidden="true" />
+              <span>{factor}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Prev/Next Navigation */}
-      <div className="pt-6 border-t border-slate-800/60 flex flex-col sm:flex-row justify-between items-center gap-4">
-        {/* Placeholder for "Previous" if we want to expand later */}
-        <div className="flex-1" />
+      <div className="fixed md:static bottom-0 inset-x-0 z-20 bg-surface/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t border-border-default p-4 md:p-0 md:pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="hidden md:block flex-1" />
         
         <Link
           href="/module1/opportunity-analysis"
-          className="inline-flex items-center gap-2 px-5 py-2.5 accent-gradient hover:opacity-90 transition-opacity text-white text-sm font-bold rounded-xl shadow-md"
+          className="w-full md:w-auto inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 btn-primary font-semibold text-sm rounded-xl gap-2 transition-all"
         >
           Next: Opportunity Analysis →
         </Link>
