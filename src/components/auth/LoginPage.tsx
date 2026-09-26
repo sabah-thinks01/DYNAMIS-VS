@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import type { Role } from "@/components/shared/AppShell";
 import { ROLE_HOME } from "@/components/shared/AppShell";
 import { setSession } from "@/lib/session";
@@ -23,7 +25,7 @@ const FEATURES = [
   {
     label: "Check your market",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 shrink-0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 shrink-0">
         <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
       </svg>
     ),
@@ -31,7 +33,7 @@ const FEATURES = [
   {
     label: "Understand competition",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 shrink-0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 shrink-0">
         <path d="M3 3v18h18" /><path d="m18 9-5 5-4-4-3 3" />
       </svg>
     ),
@@ -39,7 +41,7 @@ const FEATURES = [
   {
     label: "Plan your finances",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 shrink-0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 shrink-0">
         <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
       </svg>
     ),
@@ -48,60 +50,48 @@ const FEATURES = [
 
 function BrandPanel() {
   return (
-    <div className="relative flex flex-col justify-center px-8 py-12 md:px-12 lg:px-16 overflow-hidden min-h-[200px] md:min-h-screen">
-      {/* SVG contour pattern background */}
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full opacity-[0.06]"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <pattern id="contours" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-            <circle cx="40" cy="40" r="35" fill="none" stroke="currentColor" strokeWidth="1" />
-            <circle cx="40" cy="40" r="25" fill="none" stroke="currentColor" strokeWidth="1" />
-            <circle cx="40" cy="40" r="15" fill="none" stroke="currentColor" strokeWidth="1" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#contours)" />
-      </svg>
+    <div className="relative flex flex-col justify-center px-8 py-12 md:px-12 lg:px-16 overflow-hidden min-h-[300px] md:min-h-screen">
+      {/* Full-bleed hero image */}
+      <Image 
+        src="/images/login-hero.png" 
+        alt="Rural tea field" 
+        fill 
+        className="object-cover" 
+        priority 
+      />
 
-      {/* Gradient overlay */}
+      {/* Gradient overlay fading in from bottom */}
       <div
         aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--brand-panel-from, #0a2e1e) 0%, var(--brand-panel-to, #0d3d2a) 100%)",
-        }}
+        className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
       />
 
       {/* Content */}
       <div className="relative z-10 text-white max-w-sm">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-4 mb-10">
           <span
-            className="text-white font-extrabold text-lg px-3 py-1.5 rounded-xl tracking-wide shadow-md"
+            className="text-white font-extrabold text-xl px-4 py-2 rounded-xl tracking-wide shadow-md"
             style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
           >
             DYNAMIS
           </span>
-          <span className="text-[11px] text-white/60 font-medium leading-tight">
+          <span className="text-xs text-white/80 font-medium leading-tight">
             Rural Credit<br />Platform
           </span>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight text-white mb-6">
           Know your market.<br />Plan your funding.
         </h1>
-        <p className="text-sm text-white/70 leading-relaxed mb-10 max-w-[28ch]">
+        <p className="text-base md:text-lg text-white/80 leading-relaxed mb-12 max-w-[28ch]">
           Business guidance and government scheme support for rural entrepreneurs.
         </p>
 
-        <ul className="space-y-4">
+        <ul className="space-y-6">
           {FEATURES.map((f) => (
-            <li key={f.label} className="flex items-center gap-3 text-sm text-white/80">
-              <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.12)" }}>
+            <li key={f.label} className="flex items-center gap-4 text-base font-medium text-white/90">
+              <span className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.15)" }}>
                 {f.svg}
               </span>
               {f.label}
@@ -178,7 +168,7 @@ function OtpInput({
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className="w-11 h-14 text-center text-base font-bold rounded-xl border-2 border-border-default bg-surface-subtle text-main transition-all focus:bg-surface focus:border-accent-strong focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+          className="w-12 h-16 text-center text-lg font-bold rounded-xl border-2 border-border-default bg-surface-subtle text-main transition-all focus:bg-surface focus:border-accent-strong focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           aria-label={`OTP digit ${i + 1}`}
           style={{ fontSize: "16px" }} // prevents iOS zoom
         />
@@ -204,6 +194,11 @@ function SignInCard({ onSuccess }: SignInCardProps) {
 
   // Focus mobile field on mount
   useEffect(() => { mobileRef.current?.focus(); }, []);
+
+  // Sync role to document so the theme matches the active toggle pill
+  useEffect(() => {
+    document.documentElement.setAttribute("data-role", role === "officer" ? "sca-officer" : "entrepreneur");
+  }, [role]);
 
   function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -239,26 +234,26 @@ function SignInCard({ onSuccess }: SignInCardProps) {
   ];
 
   return (
-    <div className="app-card w-full max-w-md mx-auto px-6 py-8 md:px-8 md:py-10">
+    <div className="app-card w-full max-w-lg mx-auto px-8 py-10 md:px-10 md:py-12 relative z-10">
       {/* Card header */}
-      <div className="mb-7">
-        <h2 className="text-xl font-bold text-main">Sign in</h2>
-        <p className="text-sm text-muted mt-1">Continue to your account</p>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-main">Sign in</h2>
+        <p className="text-base text-muted mt-1.5">Continue to your account</p>
       </div>
 
       {/* Role segmented control */}
-      <fieldset className="mb-6">
-        <legend className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+      <fieldset className="mb-8">
+        <legend className="text-sm font-semibold text-muted uppercase tracking-wider mb-2.5">
           I am a
         </legend>
-        <div className="flex gap-1 p-1 rounded-xl border border-border-default bg-surface-subtle">
+        <div className="flex gap-1.5 p-1.5 rounded-xl border border-border-default bg-surface-subtle">
           {ROLES.map((r) => (
             <button
               key={r.value}
               type="button"
               onClick={() => setRole(r.value)}
               aria-pressed={role === r.value}
-              className={`flex-1 min-h-[44px] px-3 py-2 rounded-lg text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+              className={`flex-1 min-h-[48px] px-4 py-2.5 rounded-lg text-base font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
                 role === r.value
                   ? "bg-accent-strong text-white shadow-sm"
                   : "text-muted hover:text-main"
@@ -272,12 +267,12 @@ function SignInCard({ onSuccess }: SignInCardProps) {
 
       {step === 1 ? (
         <form onSubmit={handleSendOtp} noValidate>
-          <div className="mb-5">
-            <label htmlFor="mobile" className="block text-sm font-medium text-main mb-2">
+          <div className="mb-6">
+            <label htmlFor="mobile" className="block text-base font-medium text-main mb-2.5">
               Mobile number
             </label>
-            <div className="flex gap-2">
-              <span className="flex items-center px-3 min-h-[48px] text-sm font-medium text-main bg-surface-subtle border border-border-default rounded-xl select-none">
+            <div className="flex gap-2.5">
+              <span className="flex items-center px-4 min-h-[56px] text-base font-medium text-main bg-surface-subtle border border-border-default rounded-xl select-none">
                 +91
               </span>
               <input
@@ -294,14 +289,14 @@ function SignInCard({ onSuccess }: SignInCardProps) {
                 placeholder="10-digit mobile number"
                 aria-describedby={mobileError ? "mobile-error" : undefined}
                 aria-invalid={!!mobileError}
-                className={`flex-1 min-h-[48px] px-3.5 text-sm bg-surface-subtle border rounded-xl text-main placeholder-muted focus:bg-surface focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-colors ${
+                className={`flex-1 min-h-[56px] px-4 text-base bg-surface-subtle border rounded-xl text-main placeholder-muted focus:bg-surface focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-colors ${
                   mobileError ? "border-[var(--status-error)]" : "border-border-default focus:border-accent-strong"
                 }`}
                 style={{ fontSize: "16px" }}
               />
             </div>
             {mobileError && (
-              <p id="mobile-error" role="alert" aria-live="assertive" className="text-xs font-medium mt-1.5" style={{ color: "var(--status-error)" }}>
+              <p id="mobile-error" role="alert" aria-live="assertive" className="text-sm font-medium mt-2" style={{ color: "var(--status-error)" }}>
                 {mobileError}
               </p>
             )}
@@ -309,40 +304,42 @@ function SignInCard({ onSuccess }: SignInCardProps) {
 
           <button
             type="submit"
-            className="w-full min-h-[48px] px-6 py-3 btn-primary font-semibold text-sm rounded-xl transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            className="w-full min-h-[56px] px-6 py-3 bg-gradient-to-r from-emerald-900 to-emerald-500 hover:from-emerald-800 hover:to-emerald-400 text-white font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
             Send OTP
+            <ArrowRight className="w-5 h-5 ml-2" />
           </button>
         </form>
       ) : (
         <form onSubmit={handleVerify} noValidate>
-          <p className="text-sm text-muted mb-5">
+          <p className="text-base text-muted mb-6">
             Enter the 6-digit OTP sent to{" "}
             <span className="font-semibold text-main">{maskMobile(mobile)}</span>
           </p>
 
-          <div className="mb-1.5">
+          <div className="mb-2">
             <OtpInput value={otp} onChange={setOtp} />
           </div>
 
           {otpError && (
-            <p role="alert" aria-live="assertive" className="text-xs font-medium mt-2 text-center" style={{ color: "var(--status-error)" }}>
+            <p role="alert" aria-live="assertive" className="text-sm font-medium mt-3 text-center" style={{ color: "var(--status-error)" }}>
               {otpError}
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full min-h-[48px] px-6 py-3 btn-primary font-semibold text-sm rounded-xl mt-5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            className="w-full min-h-[56px] px-6 py-3 bg-gradient-to-r from-emerald-900 to-emerald-500 hover:from-emerald-800 hover:to-emerald-400 text-white font-bold text-base rounded-xl mt-6 transition-all shadow-md flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
             Verify &amp; continue
+            <ArrowRight className="w-5 h-5 ml-2" />
           </button>
 
-          <div className="flex justify-center gap-4 mt-4">
+          <div className="flex justify-center gap-5 mt-5">
             <button
               type="button"
               onClick={() => setOtp(Array(6).fill(""))}
-              className="text-xs font-medium text-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded"
+              className="text-sm font-medium text-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded"
             >
               Resend OTP
             </button>
@@ -350,13 +347,13 @@ function SignInCard({ onSuccess }: SignInCardProps) {
             <button
               type="button"
               onClick={handleChangeNumber}
-              className="text-xs font-medium text-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded"
+              className="text-sm font-medium text-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded"
             >
               Change number
             </button>
           </div>
 
-          <p className="text-center text-xs text-muted mt-5">
+          <p className="text-center text-sm text-muted mt-6">
             Demo mode: any 6-digit OTP works
           </p>
         </form>
@@ -391,28 +388,27 @@ export function LoginPage() {
       {/* Desktop: side-by-side; Mobile: stacked */}
       <div className="flex flex-col md:flex-row flex-1">
         {/* Brand panel — full-width on mobile, half on desktop */}
-        <div
-          className="md:w-[45%] lg:w-1/2 relative"
-          style={{
-            background:
-              "linear-gradient(135deg, #0a2e1e 0%, #0d3d2a 100%)",
-          }}
-        >
+        <div className="md:w-[45%] lg:w-1/2 relative flex flex-col">
           <BrandPanel />
         </div>
 
         {/* Sign-in area */}
-        <div className="flex-1 flex flex-col">
+        <div 
+          className="flex-1 flex flex-col relative overflow-hidden"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 85% 15%, var(--accent-subtle) 0%, transparent 45%), radial-gradient(circle at 15% 85%, var(--accent-glow) 0%, transparent 45%)'
+          }}
+        >
           {/* Sign-in card — centred */}
-          <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-16">
+          <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-16 relative z-10">
             <SignInCard onSuccess={handleSuccess} />
           </div>
 
           {/* Mobile-only: feature list after card */}
-          <div className="md:hidden px-6 pb-8 space-y-3">
+          <div className="md:hidden px-8 pb-10 space-y-4 relative z-10">
             {FEATURES.map((f) => (
-              <div key={f.label} className="flex items-center gap-3 text-sm text-muted">
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-subtle shrink-0 text-muted">
+              <div key={f.label} className="flex items-center gap-4 text-base font-medium text-muted">
+                <span className="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-subtle shrink-0 text-muted">
                   {f.svg}
                 </span>
                 {f.label}
