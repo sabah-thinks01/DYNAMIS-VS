@@ -1,30 +1,8 @@
-"use client";
-
-import React, { useState } from "react";
-import { mockApplicants, mockOfficerStats } from "@/lib/mockData/mockApplicants";
+import { mockOfficerStats } from "@/lib/mockData/mockApplicants";
 import { OfficerStatSummary } from "@/components/officer/OfficerStatSummary";
-import { ApplicantFilterBar, FilterState } from "@/components/officer/ApplicantFilterBar";
-import { ApplicantTable } from "@/components/officer/ApplicantTable";
+import { ApplicantConsoleSection } from "@/components/officer/ApplicantConsoleSection";
 
 export default function OfficerConsolePage() {
-  const [filters, setFilters] = useState<FilterState>({
-    searchQuery: "",
-    status: "all",
-    risk: "all",
-  });
-
-  // Client-side filtering logic
-  const filteredApplicants = mockApplicants.filter((app) => {
-    const matchesSearch =
-      app.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-      app.businessType.toLowerCase().includes(filters.searchQuery.toLowerCase());
-    
-    const matchesStatus = filters.status === "all" || app.status === filters.status;
-    const matchesRisk = filters.risk === "all" || app.riskLevel === filters.risk;
-
-    return matchesSearch && matchesStatus && matchesRisk;
-  });
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -42,7 +20,7 @@ export default function OfficerConsolePage() {
             Monitor incoming applications, evaluate viability scores, and process scheme loans
           </p>
         </div>
-        
+
         {/* Placeholder for future action button like "Export Report" */}
         <button className="hidden sm:flex items-center justify-center min-h-[44px] px-5 py-2 bg-surface-subtle hover:bg-surface-hover text-main text-xs font-semibold rounded-xl border border-border-default transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,23 +33,8 @@ export default function OfficerConsolePage() {
       {/* KPI Stats Summary */}
       <OfficerStatSummary stats={mockOfficerStats} />
 
-      {/* Main Table View Wrapper */}
-      <div className="app-card rounded-2xl shadow-xl border border-border-default/80 overflow-hidden">
-        <ApplicantFilterBar filters={filters} onFilterChange={setFilters} />
-        
-        <div className="p-0 border-t border-border-default">
-          <ApplicantTable applicants={filteredApplicants} />
-        </div>
-        
-        {/* Simple pagination/footer area */}
-        <div className="bg-surface-subtle border-t border-border-default p-4 flex items-center justify-between text-xs text-muted">
-          <span>Showing {filteredApplicants.length} of {mockApplicants.length} applications</span>
-          <div className="flex space-x-2">
-            <button className="min-h-[44px] px-4 py-2 rounded-xl bg-surface border border-border-default text-muted cursor-not-allowed opacity-50 flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Previous</button>
-            <button className="min-h-[44px] px-4 py-2 rounded-xl bg-surface hover:bg-surface-hover border border-border-default text-main transition-colors flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Next</button>
-          </div>
-        </div>
-      </div>
+      {/* Interactive filter + table section */}
+      <ApplicantConsoleSection />
     </div>
   );
 }
