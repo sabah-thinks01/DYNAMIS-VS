@@ -118,7 +118,6 @@
   /* Reusable patterns */
   .app-card {
     background: var(--bg-surface);
-    backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--border-default);
     box-shadow: var(--shadow-card);
     border-radius: 1rem;

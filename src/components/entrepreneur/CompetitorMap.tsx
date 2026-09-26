@@ -83,7 +83,15 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
   useEffect(() => {
     if (typeof window !== "undefined" && window.mappls) {
       setIsScriptLoaded(true);
+      return;
     }
+    const interval = setInterval(() => {
+      if (typeof window !== "undefined" && window.mappls) {
+        setIsScriptLoaded(true);
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
   }, []);
 
   // Map Initialization Effect (runs once)
@@ -353,12 +361,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
       {/* Map Container */}
       <div className="w-full h-96 sm:h-[420px] rounded-2xl overflow-hidden border border-border-default shadow-card relative z-0 bg-surface">
-        <Script 
-          src={`https://sdk.mappls.com/map/sdk/web?v=3.0&access_token=${mapplsKey}`} 
-          strategy="afterInteractive"
-          onLoad={() => setIsScriptLoaded(true)}
-          onReady={() => setIsScriptLoaded(true)}
-        />
+
         
         {!isMapReady && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm animate-pulse">
