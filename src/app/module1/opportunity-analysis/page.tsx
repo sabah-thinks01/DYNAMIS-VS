@@ -7,7 +7,17 @@ import { CompetitorDensityCard } from "@/components/entrepreneur/CompetitorDensi
 import { RoleModelRealityCheck } from "@/components/entrepreneur/RoleModelRealityCheck";
 
 // Dynamically import map to avoid SSR issues with Leaflet window object
-const CompetitorMap = dynamic(() => import("@/components/entrepreneur/CompetitorMap"), { ssr: false });
+const CompetitorMap = dynamic(() => import("@/components/entrepreneur/CompetitorMap"), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-96 sm:h-[420px] rounded-2xl border border-border-default shadow-card bg-surface flex items-center justify-center">
+      <div className="flex flex-col items-center">
+        <div className="w-8 h-8 border-4 border-accent/30 border-t-accent-strong rounded-full animate-spin mb-3"></div>
+        <span className="text-xs font-medium text-main">Loading map...</span>
+      </div>
+    </div>
+  )
+});
 
 export default function OpportunityAnalysisPage() {
   const report = mockFeasibilityReport;

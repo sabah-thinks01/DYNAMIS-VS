@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AppShell } from "@/components/shared/AppShell";
 
@@ -31,6 +32,12 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-page text-main antialiased font-sans transition-colors duration-200">
+        {process.env.NEXT_PUBLIC_MAPPLS_MAP_KEY && (
+          <Script 
+            src={`https://sdk.mappls.com/map/sdk/web?v=3.0&access_token=${process.env.NEXT_PUBLIC_MAPPLS_MAP_KEY}`} 
+            strategy="afterInteractive"
+          />
+        )}
         <AppShell>{children}</AppShell>
       </body>
     </html>
