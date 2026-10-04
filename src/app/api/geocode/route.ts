@@ -27,6 +27,7 @@ async function enqueueNominatimRequest(): Promise<void> {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawAddress = searchParams.get('address') || '';
+  const isMulti = searchParams.get('multi') === '1';
 
   // 1. Normalize query
   const normalizedAddress = rawAddress.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -36,17 +37,16 @@ export async function GET(request: Request) {
   }
 
   // 2. Check cache
+  const cacheKey = `${normalizedAddress}_multi:${isMulti}`;
   const now = Date.now();
-  if (cache.has(normalizedAddress)) {
-    const cachedItem = cache.get(normalizedAddress)!;
+  if (cache.has(cacheKey)) {
+    const cachedItem = cache.get(cacheKey)!;
     if (now < cachedItem.expiry) {
-      // Re-insert to update insertion order for LRU behavior if we implemented it,
-      // but simple delete and set works well enough to push it to the end of keys.
-      cache.delete(normalizedAddress);
-      cache.set(normalizedAddress, cachedItem);
+      cache.delete(cacheKey);
+      cache.set(cacheKey, cachedItem);
       return NextResponse.json({ ...cachedItem.data, source: 'cache' });
     } else {
-      cache.delete(normalizedAddress);
+      cache.delete(cacheKey);
     }
   }
 
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   }
 
   const setCache = (data: any, ttlMs: number = CACHE_TTL_MS) => {
-    cache.set(normalizedAddress, { data, expiry: Date.now() + ttlMs });
+    cache.set(cacheKey, { data, expiry: Date.now() + ttlMs });
   };
 
   try {
@@ -65,7 +65,8 @@ export async function GET(request: Request) {
     await enqueueNominatimRequest();
 
     // 3. Call Nominatim
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(normalizedAddress)}&format=jsonv2&countrycodes=in&limit=1&addressdetails=0`;
+    const limit = isMulti ? 5 : 1;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(normalizedAddress)}&format=jsonv2&countrycodes=in&limit=${limit}&addressdetails=1`;
     
     let userAgent = "DYNAMIS-SIH26091/0.1";
     if (process.env.NOMINATIM_CONTACT_EMAIL) {
@@ -98,27 +99,92 @@ export async function GET(request: Request) {
       return NextResponse.json(errorResult, { status: 404 });
     }
 
-    const place = data[0];
-    const lat = parseFloat(place.lat);
-    const lng = parseFloat(place.lon);
+    if (isMulti) {
+      const settlementTypes = new Set(['village', 'hamlet', 'town', 'city', 'suburb', 'locality']);
+      const isSettlement = (p: any) => {
+        const t = (p.type || '').toLowerCase();
+        const at = (p.addresstype || '').toLowerCase();
+        return settlementTypes.has(t) || settlementTypes.has(at);
+      };
 
-    if (isNaN(lat) || isNaN(lng)) {
-      const errorResult = { ok: false, errorType: 'no_results' };
-      setCache(errorResult, 1000 * 60 * 5);
-      return NextResponse.json(errorResult, { status: 404 });
+      // Sort so settlements come before administrative/boundary results, preserving relative order within each group
+      const settlements: any[] = [];
+      const nonSettlements: any[] = [];
+      for (const item of data) {
+        if (isSettlement(item)) {
+          settlements.push(item);
+        } else {
+          nonSettlements.push(item);
+        }
+      }
+      const sortedData = [...settlements, ...nonSettlements];
+
+      const formatMultiLabel = (place: any) => {
+        const placeName = (place.name || (place.display_name ? place.display_name.split(',')[0].trim() : '')).trim();
+        const a = place.address || {};
+        
+        const secondaryCandidates = [
+          a.subdistrict || a.taluk || a.county,
+          a.state_district || a.district,
+          a.state
+        ].filter(Boolean);
+
+        const parts = [placeName];
+        for (const candidate of secondaryCandidates) {
+          const trimmed = String(candidate).trim();
+          if (!parts.some(p => p.toLowerCase() === trimmed.toLowerCase())) {
+            parts.push(trimmed);
+          }
+        }
+        return parts.length > 0 ? parts.join(', ') : place.display_name;
+      };
+
+      const results: any[] = [];
+      for (const place of sortedData) {
+        const lat = parseFloat(place.lat);
+        const lng = parseFloat(place.lon);
+        if (isNaN(lat) || isNaN(lng)) continue;
+
+        const label = formatMultiLabel(place);
+        const item = { lat, lng, formattedAddress: label, type: place.type };
+
+        // De-duplicate (same label or within ~1km / 0.009 degrees)
+        const isDup = results.some(d => 
+          d.formattedAddress.toLowerCase() === item.formattedAddress.toLowerCase() || 
+          (Math.abs(d.lat - item.lat) < 0.009 && Math.abs(d.lng - item.lng) < 0.009)
+        );
+        if (!isDup) results.push(item);
+      }
+
+      if (results.length === 0) {
+        const errorResult = { ok: false, errorType: 'no_results' };
+        setCache(errorResult, 1000 * 60 * 5);
+        return NextResponse.json(errorResult, { status: 404 });
+      }
+
+      const successResult = { ok: true, results, source: 'nominatim' };
+      setCache(successResult);
+      return NextResponse.json(successResult);
+    } else {
+      const place = data[0];
+      const lat = parseFloat(place.lat);
+      const lng = parseFloat(place.lon);
+      if (isNaN(lat) || isNaN(lng)) {
+        const errorResult = { ok: false, errorType: 'no_results' };
+        setCache(errorResult, 1000 * 60 * 5);
+        return NextResponse.json(errorResult, { status: 404 });
+      }
+
+      const successResult = {
+        ok: true,
+        lat,
+        lng,
+        formattedAddress: place.display_name, // keep backward compat for single
+        source: 'nominatim'
+      };
+      setCache(successResult);
+      return NextResponse.json(successResult);
     }
-
-    // 5. Parse and return success
-    const successResult = {
-      ok: true,
-      lat,
-      lng,
-      formattedAddress: place.display_name,
-      source: 'nominatim'
-    };
-    
-    setCache(successResult);
-    return NextResponse.json(successResult);
 
   } catch (error: any) {
     console.error('Server-side geocoding error:', error);

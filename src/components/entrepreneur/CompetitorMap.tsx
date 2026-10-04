@@ -233,6 +233,9 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
   }, [isMapReady, filteredCompetitors, searchCenter, centerLat, centerLng]);
 
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showPickList, setShowPickList] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   // Geocoding Handler
   const handleSearch = async (e: React.FormEvent) => {
@@ -241,21 +244,20 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     
     setIsSearching(true);
     try {
-      const url = `/api/geocode?address=${encodeURIComponent(searchQuery)}`;
+      const url = `/api/geocode?address=${encodeURIComponent(searchQuery)}&multi=1`;
       const res = await fetch(url);
       const data = await res.json();
       
-      if (res.ok && data.ok) {
-        const numLat = Number(data.lat);
-        const numLng = Number(data.lng);
-        setSearchCenter([numLat, numLng]);
-        
-        if (mapInstanceRef.current && typeof mapInstanceRef.current.panTo === 'function') {
-          mapInstanceRef.current.panTo({ lng: numLng, lat: numLat });
-        } else if (mapInstanceRef.current && typeof mapInstanceRef.current.setCenter === 'function') {
-          mapInstanceRef.current.setCenter({ lng: numLng, lat: numLat });
+      if (res.ok && data.ok && data.results && data.results.length > 0) {
+        if (data.results.length === 1) {
+          handleSelectResult(data.results[0]);
+        } else {
+          setSearchResults(data.results.slice(0, 5));
+          setShowPickList(true);
+          setActiveIndex(-1);
         }
       } else {
+        setShowPickList(false);
         if (data.errorType === 'no_results') {
           alert("Location not found. Please try a different search term.");
         } else if (data.errorType === 'rate_limited') {
@@ -266,11 +268,79 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
       }
     } catch (err) {
       console.error("Geocoding failed", err);
+      setShowPickList(false);
       alert("Search failed due to a network error. Please try again.");
     } finally {
       setIsSearching(false);
     }
   };
+
+  const handleSelectResult = (item: any) => {
+    const numLat = Number(item.lat);
+    const numLng = Number(item.lng);
+    setSearchCenter([numLat, numLng]);
+    setShowPickList(false);
+    
+    if (mapInstanceRef.current && typeof mapInstanceRef.current.panTo === 'function') {
+      mapInstanceRef.current.panTo({ lng: numLng, lat: numLat });
+    } else if (mapInstanceRef.current && typeof mapInstanceRef.current.setCenter === 'function') {
+      mapInstanceRef.current.setCenter({ lng: numLng, lat: numLat });
+    }
+  };
+
+  const handleGpsLocation = () => {
+    if (!("geolocation" in navigator) || window.isSecureContext === false) {
+      alert("Location is not available on this device or connection. Please type your place name instead.");
+      return;
+    }
+
+    setIsSearching(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsSearching(false);
+        const { latitude, longitude } = position.coords;
+        handleSelectResult({ lat: latitude, lng: longitude });
+      },
+      (error) => {
+        setIsSearching(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("Location access was blocked. Please allow location access in your browser, or type your place name instead.");
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          alert("Could not detect your location. Please type your place name instead.");
+        } else if (error.code === error.TIMEOUT) {
+          alert("Finding your location took too long. Please try again or type your place name instead.");
+        } else {
+          alert("Location is not available on this device or connection. Please type your place name instead.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showPickList || searchResults.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      handleSelectResult(searchResults[activeIndex]);
+    } else if (e.key === 'Escape') {
+      setShowPickList(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => setShowPickList(false);
+    if (showPickList) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showPickList]);
 
   if (!mapplsKey) {
     return (
@@ -287,20 +357,61 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
       {/* UI Controls */}
       <div className="app-card w-full p-4 sm:p-5 rounded-2xl border border-border-default shadow-card relative z-10 bg-surface">
         <div className="flex flex-col sm:flex-row gap-5 items-end">
-          <div className="w-full sm:flex-1 space-y-2">
+          <div className="w-full sm:flex-1 space-y-2 relative">
             <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Search Location</label>
             <form onSubmit={handleSearch} className="flex gap-2">
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search district, city..."
-                className="w-full min-h-[44px] bg-surface-subtle border border-border-default rounded-xl px-3.5 py-2 text-sm text-main placeholder-muted focus:bg-surface focus:outline-none focus:border-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-colors"
-              />
-              <button type="submit" className="min-h-[44px] px-5 py-2.5 btn-primary font-semibold text-sm rounded-xl shrink-0">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); setShowPickList(false); }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search district, city..."
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={showPickList && searchResults.length > 0}
+                  aria-controls="location-picklist"
+                  aria-activedescendant={showPickList && searchResults.length > 0 && activeIndex >= 0 ? `location-option-${activeIndex}` : undefined}
+                  className="w-full min-h-[44px] bg-surface-subtle border border-border-default rounded-xl px-3.5 py-2 text-sm text-main placeholder-muted focus:bg-surface focus:outline-none focus:border-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-colors"
+                />
+                {showPickList && searchResults.length > 0 && (
+                  <div 
+                    id="location-picklist"
+                    role="listbox"
+                    className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border-default rounded-xl shadow-lg z-50 overflow-hidden"
+                  >
+                    {searchResults.map((res, idx) => (
+                      <div 
+                        key={idx} 
+                        id={`location-option-${idx}`}
+                        role="option"
+                        aria-selected={activeIndex === idx}
+                        onClick={() => handleSelectResult(res)}
+                        className={`px-4 py-3 cursor-pointer text-sm text-main hover:bg-surface-subtle transition-colors ${activeIndex === idx ? 'bg-surface-subtle font-medium text-accent-strong' : ''}`}
+                      >
+                        {res.formattedAddress}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button type="submit" disabled={isSearching} className="min-h-[44px] px-5 py-2.5 btn-primary font-semibold text-sm rounded-xl shrink-0 disabled:opacity-50">
                 Search
               </button>
             </form>
+            <button
+              type="button"
+              onClick={handleGpsLocation}
+              disabled={isSearching}
+              aria-label="Use my current location"
+              className="w-full min-h-[44px] px-3 flex items-center justify-center gap-2 bg-surface-subtle border border-border-default rounded-xl text-xs font-medium text-main hover:bg-surface focus:outline-none focus:border-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-colors disabled:opacity-50"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Use my current location</span>
+            </button>
           </div>
           
           <div className="w-full sm:flex-1 space-y-2">
