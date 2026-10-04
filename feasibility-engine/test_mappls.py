@@ -1,5 +1,10 @@
+import os
 import httpx
-key = "pembfvwuqdawvznaxggistcdorpdwbwxiato"
+
+if "MAPPLS_REST_KEY" not in os.environ:
+    raise RuntimeError("MAPPLS_REST_KEY environment variable is not set. Please set it before running this test script.")
+
+key = os.environ["MAPPLS_REST_KEY"]
 
 url_search = "https://search.mappls.com/search/places/nearby/json"
 print("Test 6: search.mappls.com with access_token param and 'bank' keyword")
