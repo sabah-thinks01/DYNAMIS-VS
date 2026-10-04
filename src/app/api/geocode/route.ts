@@ -1,65 +1,130 @@
 import { NextResponse } from 'next/server';
 
+// Global cache and rate limiting state
+const cache = new Map<string, { data: any; expiry: number }>();
+const MAX_CACHE_SIZE = 1000;
+const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
+
+let lastNominatimRequestTime = 0;
+let requestQueue: Promise<void> = Promise.resolve();
+
+async function enqueueNominatimRequest(): Promise<void> {
+  const waitPromise = requestQueue.then(() => {
+    return new Promise<void>(resolve => {
+      const now = Date.now();
+      const timeSinceLast = now - lastNominatimRequestTime;
+      const delay = Math.max(0, 1000 - timeSinceLast);
+      setTimeout(() => {
+        lastNominatimRequestTime = Date.now();
+        resolve();
+      }, delay);
+    });
+  });
+  requestQueue = waitPromise;
+  return waitPromise;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const address = searchParams.get('address');
+  const rawAddress = searchParams.get('address') || '';
 
-  if (!address) {
-    return NextResponse.json({ error: 'Address is required' }, { status: 400 });
+  // 1. Normalize query
+  const normalizedAddress = rawAddress.trim().toLowerCase().replace(/\s+/g, ' ');
+
+  if (!normalizedAddress || normalizedAddress.length > 100) {
+    return NextResponse.json({ ok: false, errorType: 'no_results' }, { status: 400 });
   }
 
-  // Use the same key used for map tiles.
-  // Although NEXT_PUBLIC keys are exposed to the client, this endpoint is called server-side
-  // to bypass CORS restrictions on search.mappls.com which blocks direct browser fetches.
-  const apiKey = process.env.NEXT_PUBLIC_MAPPLS_MAP_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Mappls API key is not configured' }, { status: 500 });
+  // 2. Check cache
+  const now = Date.now();
+  if (cache.has(normalizedAddress)) {
+    const cachedItem = cache.get(normalizedAddress)!;
+    if (now < cachedItem.expiry) {
+      // Re-insert to update insertion order for LRU behavior if we implemented it,
+      // but simple delete and set works well enough to push it to the end of keys.
+      cache.delete(normalizedAddress);
+      cache.set(normalizedAddress, cachedItem);
+      return NextResponse.json({ ...cachedItem.data, source: 'cache' });
+    } else {
+      cache.delete(normalizedAddress);
+    }
   }
+
+  // Ensure cache doesn't grow unbounded
+  if (cache.size >= MAX_CACHE_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey) cache.delete(firstKey);
+  }
+
+  const setCache = (data: any, ttlMs: number = CACHE_TTL_MS) => {
+    cache.set(normalizedAddress, { data, expiry: Date.now() + ttlMs });
+  };
 
   try {
-    const url = `https://search.mappls.com/search/address/geocode?access_token=${apiKey}&address=${encodeURIComponent(address)}`;
-    
-    // Server-side fetch bypasses CORS
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    // Check if we got results
-    const results = Array.isArray(data.copResults) ? data.copResults : (data.copResults ? [data.copResults] : []);
-    
-    if (results.length > 0) {
-      const first = results[0];
-      const lat = first.latitude ?? first.lat;
-      const lng = first.longitude ?? first.lng;
+    // 4. Enforce 1 request/second globally
+    await enqueueNominatimRequest();
 
-      // If we only got an eLoc and no direct coordinates, call the Place Details API
-      if (lat == null && lng == null && first.eLoc) {
-        const placeDetailsUrl = `https://explore.mappls.com/apis/O2O/entity/${first.eLoc}`;
-        
-        const placeRes = await fetch(placeDetailsUrl, {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`
-          }
-        });
-        
-        if (placeRes.ok) {
-          const placeData = await placeRes.json();
-          // Mappls O2O entity response usually puts lat/lng at the root or inside 'latitude'/'longitude'
-          const resolvedLat = placeData.latitude ?? placeData.lat;
-          const resolvedLng = placeData.longitude ?? placeData.lng;
-          
-          if (resolvedLat != null && resolvedLng != null) {
-            // Inject resolved coordinates back into the primary result for the frontend
-            first.latitude = resolvedLat;
-            first.longitude = resolvedLng;
-          }
-        }
-      }
-    }
+    // 3. Call Nominatim
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(normalizedAddress)}&format=jsonv2&countrycodes=in&limit=1&addressdetails=0`;
     
-    return NextResponse.json(data);
-  } catch (error) {
+    let userAgent = "DYNAMIS-SIH26091/0.1";
+    if (process.env.NOMINATIM_CONTACT_EMAIL) {
+      userAgent += ` (${process.env.NOMINATIM_CONTACT_EMAIL})`;
+    }
+
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => abortController.abort(), 6000);
+
+    const res = await fetch(url, {
+      headers: { 'User-Agent': userAgent },
+      signal: abortController.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (res.status === 429 || res.status === 403) {
+      return NextResponse.json({ ok: false, errorType: 'rate_limited' }, { status: 429 });
+    }
+
+    if (!res.ok) {
+      return NextResponse.json({ ok: false, errorType: 'network' }, { status: 500 });
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      const errorResult = { ok: false, errorType: 'no_results' };
+      setCache(errorResult, 1000 * 60 * 5); // cache negative results for 5 mins
+      return NextResponse.json(errorResult, { status: 404 });
+    }
+
+    const place = data[0];
+    const lat = parseFloat(place.lat);
+    const lng = parseFloat(place.lon);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      const errorResult = { ok: false, errorType: 'no_results' };
+      setCache(errorResult, 1000 * 60 * 5);
+      return NextResponse.json(errorResult, { status: 404 });
+    }
+
+    // 5. Parse and return success
+    const successResult = {
+      ok: true,
+      lat,
+      lng,
+      formattedAddress: place.display_name,
+      source: 'nominatim'
+    };
+    
+    setCache(successResult);
+    return NextResponse.json(successResult);
+
+  } catch (error: any) {
     console.error('Server-side geocoding error:', error);
-    return NextResponse.json({ error: 'Failed to fetch geocode data' }, { status: 500 });
+    if (error.name === 'AbortError') {
+      return NextResponse.json({ ok: false, errorType: 'network' }, { status: 504 });
+    }
+    return NextResponse.json({ ok: false, errorType: 'network' }, { status: 500 });
   }
 }

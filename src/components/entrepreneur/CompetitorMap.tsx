@@ -5,7 +5,7 @@
  * - Marker Creation: `new window.mappls.Marker({ map, position: {lat, lng} })`
  * - Marker Removal: `marker.remove()` (Iterating over a ref array)
  * - Map Pan/Center: `map.panTo({lat, lng})` or `map.setCenter({lat, lng})`
- * - Geocoding: REST call to `https://search.mappls.com/search/address/geocode`
+ * - Geocoding: REST call to `/api/geocode` (using OpenStreetMap Nominatim server-side)
  * Confirmed from Mappls JS SDK v3.0 documentation and Mappls Search API docs.
  */
 
@@ -232,42 +232,43 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
   }, [isMapReady, filteredCompetitors, searchCenter, centerLat, centerLng]);
 
+  const [isSearching, setIsSearching] = useState(false);
+
   // Geocoding Handler
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim() || !mapplsKey) return;
+    if (!searchQuery.trim() || !mapplsKey || isSearching) return;
     
+    setIsSearching(true);
     try {
       const url = `/api/geocode?address=${encodeURIComponent(searchQuery)}`;
       const res = await fetch(url);
       const data = await res.json();
       
-      const results = Array.isArray(data.copResults) ? data.copResults : (data.copResults ? [data.copResults] : []);
-      
-      if (results.length > 0) {
-        const first = results[0];
-        const lat = first.latitude ?? first.lat;
-        const lng = first.longitude ?? first.lng;
-
-        if (lat != null && lng != null) {
-          const numLat = Number(lat);
-          const numLng = Number(lng);
-          setSearchCenter([numLat, numLng]);
-          
-          if (mapInstanceRef.current && typeof mapInstanceRef.current.panTo === 'function') {
-            mapInstanceRef.current.panTo({ lng: numLng, lat: numLat });
-          } else if (mapInstanceRef.current && typeof mapInstanceRef.current.setCenter === 'function') {
-            mapInstanceRef.current.setCenter({ lng: numLng, lat: numLat });
-          }
-        } else {
-          alert("Location found, but Mappls did not return coordinates directly or via the Place Details fallback. Please check your API key tier.");
+      if (res.ok && data.ok) {
+        const numLat = Number(data.lat);
+        const numLng = Number(data.lng);
+        setSearchCenter([numLat, numLng]);
+        
+        if (mapInstanceRef.current && typeof mapInstanceRef.current.panTo === 'function') {
+          mapInstanceRef.current.panTo({ lng: numLng, lat: numLat });
+        } else if (mapInstanceRef.current && typeof mapInstanceRef.current.setCenter === 'function') {
+          mapInstanceRef.current.setCenter({ lng: numLng, lat: numLat });
         }
       } else {
-        alert("Location not found.");
+        if (data.errorType === 'no_results') {
+          alert("Location not found. Please try a different search term.");
+        } else if (data.errorType === 'rate_limited') {
+          alert("Too many searches right now. Please wait a few seconds and try again.");
+        } else {
+          alert("Search failed due to a network error. Please try again.");
+        }
       }
     } catch (err) {
-      console.error("Mappls Geocoding failed", err);
-      alert("Search failed. Check console for details.");
+      console.error("Geocoding failed", err);
+      alert("Search failed due to a network error. Please try again.");
+    } finally {
+      setIsSearching(false);
     }
   };
 
