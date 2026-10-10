@@ -12,6 +12,7 @@
 import { useEffect, useState, useRef, useMemo, useId } from "react";
 import Script from "next/script";
 import { filterBusinesses } from "@/lib/filterBusinesses";
+import { MATCH_TIERS, DENSITY_THRESHOLDS, NEARBY_CAP, NEARBY_MAX_RADIUS_KM } from "@/lib/competitorConfig";
 
 declare global {
   interface Window {
@@ -56,6 +57,11 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
   
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isPluginLoaded, setIsPluginLoaded] = useState(false);
+  
+  // Real Data States
+  const [realDataState, setRealDataState] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>('idle');
+  const [realNearbyData, setRealNearbyData] = useState<any[]>([]);
   
   // Filter States
   const [categories, setCategories] = useState<string[]>([]);
@@ -65,6 +71,9 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const centerInfoWindowRef = useRef<any>(null);
+  const realPinsRef = useRef<any[]>([]);
+  const pluginInjectedRef = useRef(false);
 
   const mapplsKey = process.env.NEXT_PUBLIC_MAPPLS_MAP_KEY || "";
 
@@ -94,7 +103,28 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     return () => clearInterval(interval);
   }, []);
 
-  // Map Initialization Effect (runs once)
+  // Plugin injection effect (independent of map)
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.mappls && typeof window.mappls.pinMarker === "function") {
+      setIsPluginLoaded(true);
+      return;
+    }
+    if (isScriptLoaded && !isPluginLoaded && !pluginInjectedRef.current && mapplsKey) {
+      pluginInjectedRef.current = true;
+      const script = document.createElement("script");
+      script.src = `https://sdk.mappls.com/map/sdk/plugins?v=3.0&libraries=getPinDetails&access_token=${mapplsKey}`;
+      script.onload = () => {
+        setIsPluginLoaded(true);
+      };
+      script.onerror = () => {
+        console.error("Mappls plugin failed to load");
+        setIsPluginLoaded(false);
+      };
+      document.head.appendChild(script);
+    }
+  }, [isScriptLoaded, isPluginLoaded, mapplsKey]);
+
+  // Map Initialization Effect (runs once when isScriptLoaded is ready)
   useEffect(() => {
     const containerEl = document.getElementById(mapContainerId);
     if (centerLat == null || centerLng == null || String(centerLat).trim() === "" || String(centerLng).trim() === "") return;
@@ -123,6 +153,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
     return () => {
       if (mapInstanceRef.current) {
+        if (centerInfoWindowRef.current) {
+          try {
+            if (typeof centerInfoWindowRef.current.close === "function") centerInfoWindowRef.current.close();
+            else if (typeof centerInfoWindowRef.current.remove === "function") centerInfoWindowRef.current.remove();
+          } catch (e) {}
+          centerInfoWindowRef.current = null;
+        }
+
         markersRef.current.forEach(m => {
           try {
             if (m && typeof m.remove === "function") m.remove();
@@ -131,6 +169,13 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
           }
         });
         markersRef.current = [];
+
+        realPinsRef.current.forEach(p => {
+          try {
+            if (p && typeof p.remove === "function") p.remove();
+          } catch (e) {}
+        });
+        realPinsRef.current = [];
         
         try {
           if (typeof mapInstanceRef.current.remove === "function") {
@@ -145,10 +190,142 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     };
   }, [isScriptLoaded, centerLat, centerLng, mapContainerId]);
 
+  // Real Data Fetching Effect
+  useEffect(() => {
+    if (!isMapReady) return;
+
+    // If plugin is not loaded, we do not fetch real data; fallback to sample data
+    if (!isPluginLoaded) {
+      setRealDataState('error');
+      setRealNearbyData([]);
+      window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+      return;
+    }
+
+    const activeCenter = searchCenter || [Number(centerLat), Number(centerLng)];
+    if (isNaN(activeCenter[0]) || isNaN(activeCenter[1])) return;
+
+    let active = true;
+    setRealDataState('loading');
+
+    const timeout = setTimeout(async () => {
+      const distinctKeywords = Array.from(new Set([
+        ...MATCH_TIERS.exact,
+        ...MATCH_TIERS.partial,
+        ...MATCH_TIERS.similar
+      ]));
+
+      const effectiveRadiusKm = Math.min(radiusKm, NEARBY_MAX_RADIUS_KM);
+      const requestRadiusM = effectiveRadiusKm * 1000;
+
+      try {
+        const fetchPromises = distinctKeywords.map(kw => 
+          fetch(`/api/nearby?lat=${activeCenter[0]}&lng=${activeCenter[1]}&radius=${requestRadiusM}&keyword=${encodeURIComponent(kw)}`)
+            .then(res => res.json())
+            .then(data => ({ kw, data }))
+            .catch(() => ({ kw, data: { ok: false, errorType: 'network' } }))
+        );
+
+        const results = await Promise.all(fetchPromises);
+        if (!active) return;
+
+        let hasError = false;
+        const mergedByELoc = new Map<string, any>();
+        let totalCapped = false;
+        
+        for (const res of results) {
+          if (!res.data.ok) {
+            if (res.data.errorType !== 'no_results') hasError = true;
+            continue;
+          }
+          if (res.data.capped) totalCapped = true;
+
+          for (const item of (res.data.results || [])) {
+            let assignedTier = 'similar';
+            if (MATCH_TIERS.exact.includes(res.kw)) assignedTier = 'exact';
+            else if (MATCH_TIERS.partial.includes(res.kw)) assignedTier = 'partial';
+            
+            const existing = mergedByELoc.get(item.eLoc);
+            const tierScore = (t: string) => t === 'exact' ? 3 : t === 'partial' ? 2 : 1;
+            
+            if (existing) {
+              if (tierScore(assignedTier) > tierScore(existing.tier)) {
+                existing.tier = assignedTier;
+              }
+            } else {
+              mergedByELoc.set(item.eLoc, { ...item, tier: assignedTier });
+            }
+          }
+        }
+
+        const finalResults = Array.from(mergedByELoc.values());
+        
+        if (finalResults.length === 0) {
+          setRealDataState(hasError ? 'error' : 'empty');
+          setRealNearbyData([]);
+          window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+        } else {
+          setRealDataState('success');
+          finalResults.sort((a, b) => a.distance - b.distance);
+          const cappedResults = finalResults.slice(0, NEARBY_CAP);
+          setRealNearbyData(cappedResults);
+
+          const withinRadius = cappedResults.filter(r => r.distance <= effectiveRadiusKm * 1000);
+          const countStr = (totalCapped || cappedResults.length >= NEARBY_CAP) ? "30+" : withinRadius.length;
+          
+          let countNum = typeof countStr === 'string' ? parseInt(countStr) : countStr;
+          const level = countNum < DENSITY_THRESHOLDS.low ? "Low" : countNum < DENSITY_THRESHOLDS.medium ? "Medium" : "High";
+
+          const tierRank = (t: string) => t === 'exact' ? 3 : t === 'partial' ? 2 : 1;
+          let bestTier = 0;
+          for (const r of cappedResults) bestTier = Math.max(bestTier, tierRank(r.tier));
+          
+          let minDistance = 0;
+          const bestTierResults = cappedResults.filter(r => tierRank(r.tier) === bestTier);
+          if (bestTierResults.length > 0) {
+            minDistance = Math.min(...bestTierResults.map(r => r.distance));
+          }
+          const minDistanceKm = (minDistance / 1000).toFixed(1);
+
+          window.dispatchEvent(new CustomEvent('nearby-data-update', {
+            detail: {
+              count: countStr,
+              level,
+              avgDistanceKm: minDistanceKm,
+              effectiveRadiusKm,
+              sliderRadiusKm: radiusKm,
+              isSampleData: false
+            }
+          }));
+        }
+      } catch (err) {
+        if (active) {
+          setRealDataState('error');
+          setRealNearbyData([]);
+          window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+        }
+      }
+    }, 500);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded, isMapReady]);
+
   // Marker Lifecycle Effect (runs on filter/center change)
   useEffect(() => {
     if (!isMapReady || !mapInstanceRef.current || !window.mappls) return;
     const map = mapInstanceRef.current;
+
+    // 0. Close and clean up previous center info window
+    if (centerInfoWindowRef.current) {
+      try {
+        if (typeof centerInfoWindowRef.current.close === "function") centerInfoWindowRef.current.close();
+        else if (typeof centerInfoWindowRef.current.remove === "function") centerInfoWindowRef.current.remove();
+      } catch (e) {}
+      centerInfoWindowRef.current = null;
+    }
 
     // 1. Remove existing markers (Mappls Web SDK v3.0 standard pattern)
     // Diffing/updating isn't inherently faster in Mapbox-style frameworks than a clean remove/add cycle 
@@ -161,6 +338,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
       }
     });
     markersRef.current = [];
+
+    // Remove existing real pins
+    realPinsRef.current.forEach(p => {
+      try {
+        if (p && typeof p.remove === "function") p.remove();
+      } catch (e) {}
+    });
+    realPinsRef.current = [];
 
     const activeCenter: [number, number] = searchCenter || [Number(centerLat), Number(centerLng)];
 
@@ -187,6 +372,8 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
         content: centerPopupHTML,
       });
 
+      centerInfoWindowRef.current = centerInfoWindow;
+
       safelyBindEvent(centerMarker, "click", () => {
         centerInfoWindow.setPosition({ lng: activeCenter[1], lat: activeCenter[0] });
         centerInfoWindow.open(map, centerMarker);
@@ -195,42 +382,67 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
       markersRef.current.push(centerMarker);
     }
 
-    // 3. Add Competitor Markers (Filtered)
-    filteredCompetitors.forEach((comp) => {
-      if (comp.lat == null || comp.lng == null || String(comp.lat).trim() === "" || String(comp.lng).trim() === "") return;
-      
-      const compLat = Number(comp.lat);
-      const compLng = Number(comp.lng);
-      if (isNaN(compLat) || isNaN(compLng)) return;
+    // 3. Add Competitor Markers / Real Data Pins
+    const showMockData = !isPluginLoaded || realDataState === 'empty' || realDataState === 'error';
 
-      const compMarker = new window.mappls.Marker({
-        map: map,
-        position: { lng: compLng, lat: compLat },
+    if (showMockData) {
+      filteredCompetitors.forEach((comp) => {
+        if (comp.lat == null || comp.lng == null || String(comp.lat).trim() === "" || String(comp.lng).trim() === "") return;
+        
+        const compLat = Number(comp.lat);
+        const compLng = Number(comp.lng);
+        if (isNaN(compLat) || isNaN(compLng)) return;
+
+        const compMarker = new window.mappls.Marker({
+          map: map,
+          position: { lng: compLng, lat: compLat },
+        });
+
+        const compPopupHTML = `
+          <div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.name}</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.typeMatch}</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${comp.distanceKm} km away</div>
+          </div>
+        `;
+
+        const compInfoWindow = new window.mappls.InfoWindow({
+          map: map,
+          position: { lng: compLng, lat: compLat },
+          content: compPopupHTML,
+        });
+
+        safelyBindEvent(compMarker, "click", () => {
+          compInfoWindow.setPosition({ lng: compLng, lat: compLat });
+          compInfoWindow.open(map, compMarker);
+        });
+
+        markersRef.current.push(compMarker);
       });
-
-      const compPopupHTML = `
-        <div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
-          <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.name}</div>
-          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.typeMatch}</div>
-          <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${comp.distanceKm} km away</div>
-        </div>
-      `;
-
-      const compInfoWindow = new window.mappls.InfoWindow({
-        map: map,
-        position: { lng: compLng, lat: compLat },
-        content: compPopupHTML,
+    } else if (realDataState === 'success' && isPluginLoaded) {
+      const effectiveRadiusKm = Math.min(radiusKm, NEARBY_MAX_RADIUS_KM);
+      realNearbyData.forEach((comp) => {
+        if (comp.distance > effectiveRadiusKm * 1000) return;
+        try {
+          const pinObj = window.mappls.pinMarker({
+            map: map,
+            pin: comp.eLoc,
+            popupHtml: `<div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
+                          <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.placeName}</div>
+                          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.type || 'Business'} (${comp.tier} match)</div>
+                          <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${(comp.distance / 1000).toFixed(1)} km away</div>
+                        </div>`
+          });
+          if (pinObj) {
+            realPinsRef.current.push(pinObj);
+          }
+        } catch (e) {
+          console.warn("pinMarker failed for eLoc", comp.eLoc, e);
+        }
       });
+    }
 
-      safelyBindEvent(compMarker, "click", () => {
-        compInfoWindow.setPosition({ lng: compLng, lat: compLat });
-        compInfoWindow.open(map, compMarker);
-      });
-
-      markersRef.current.push(compMarker);
-    });
-
-  }, [isMapReady, filteredCompetitors, searchCenter, centerLat, centerLng]);
+  }, [isMapReady, filteredCompetitors, realNearbyData, realDataState, searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded]);
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -352,6 +564,22 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     );
   }
 
+  // Derive status text
+  let statusMessage = "";
+  if (realDataState === 'loading') {
+    statusMessage = "Loading nearby businesses...";
+  } else if (realDataState === 'success') {
+    if (radiusKm > NEARBY_MAX_RADIUS_KM) {
+      statusMessage = "Showing businesses from Mappls (up to 10 km)";
+    } else {
+      statusMessage = "Showing businesses from Mappls";
+    }
+  } else if (realDataState === 'empty') {
+    statusMessage = "No businesses found by Mappls for this search. Showing sample data.";
+  } else if (realDataState === 'error' || (!isPluginLoaded && isScriptLoaded)) {
+    statusMessage = "Could not load nearby businesses. Showing sample data.";
+  }
+
   return (
     <div className="w-full space-y-4">
       {/* UI Controls */}
@@ -432,7 +660,12 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
         </div>
 
         <div className="w-full mt-4 pt-4 border-t border-border-default space-y-2.5">
-          <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Business Categories</label>
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Business Categories</label>
+            {statusMessage && (
+              <span className="text-xs font-medium text-main">{statusMessage}</span>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {uniqueCategories.map(cat => {
               const isSelected = categories.includes(cat);
@@ -473,8 +706,6 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
       {/* Map Container */}
       <div className="w-full h-96 sm:h-[420px] rounded-2xl overflow-hidden border border-border-default shadow-card relative z-0 bg-surface">
-
-        
         {!isMapReady && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm animate-pulse">
             <div className="w-8 h-8 border-4 border-accent/30 border-t-accent-strong rounded-full animate-spin mb-3"></div>
