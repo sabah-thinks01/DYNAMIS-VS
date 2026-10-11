@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { ApplicantInput } from "@/lib/schemeEngine";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 export interface CalculatorFormData extends ApplicantInput {
   businessType: string;
@@ -83,8 +84,9 @@ export function CalculatorFormStep({
                 onChange={(e) => onChange({ projectCost: Number(e.target.value) })}
                 className={inputClassName} placeholder="e.g. 350000"
               />
-              <span className="text-[10px] text-muted mt-1.5 block">
-                NBCFDC ceiling: ₹50,00,000 for Term Loan / ₹1,40,000 for Micro Finance
+              <span className="text-[10px] text-muted mt-1.5 flex items-center gap-1.5 flex-wrap">
+                <span>NBCFDC ceiling: ₹50,00,000 for Term Loan / ₹1,40,000 for Micro Finance</span>
+                <SampleDataTag variant="criteria" />
               </span>
             </div>
             <div>

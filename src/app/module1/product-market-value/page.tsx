@@ -1,4 +1,6 @@
 import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
+import { GuideNote } from "@/components/shared/GuideNote";
 
 export default function ProductMarketValuePage() {
   const report = mockFeasibilityReport;
@@ -21,7 +23,10 @@ export default function ProductMarketValuePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Suggested Price Range */}
           <div className="app-card p-6 flex flex-col gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Suggested Price Range</h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Suggested Price Range</h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <p className="text-4xl font-semibold text-main">{pmv.suggestedPriceRange}</p>
             <p className="text-sm text-muted mt-2 leading-relaxed">
               *Estimated range based on local market dynamics.
@@ -30,7 +35,10 @@ export default function ProductMarketValuePage() {
 
           {/* Purchasing Power */}
           <div className="app-card p-6 flex flex-col gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Regional Purchasing Power</h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Regional Purchasing Power</h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <div className="flex items-center gap-3">
               <span className={`status-pill ${
                 pmv.purchasingPowerIndicator === "High" ? "" : 
@@ -47,7 +55,10 @@ export default function ProductMarketValuePage() {
 
           {/* Local Comparison */}
           <div className="md:col-span-2 app-card p-6 flex flex-col gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Local Pricing Comparison</h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Local Pricing Comparison</h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <p className="text-sm text-main leading-relaxed">
               {pmv.localComparison}
             </p>
@@ -57,6 +68,8 @@ export default function ProductMarketValuePage() {
           </div>
         </div>
       )}
+
+      <GuideNote />
     </div>
   );
 }

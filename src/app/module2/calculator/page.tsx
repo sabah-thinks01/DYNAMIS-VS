@@ -7,6 +7,7 @@ import { CalculatorStepIndicator } from "@/components/entrepreneur/CalculatorSte
 import { CalculatorFormStep } from "@/components/entrepreneur/CalculatorFormStep";
 import type { CalculatorFormData } from "@/components/entrepreneur/CalculatorFormStep";
 import { SchemeMatchResultCard } from "@/components/entrepreneur/SchemeMatchResultCard";
+import { GuideNote } from "@/components/shared/GuideNote";
 
 function isFormComplete(data: CalculatorFormData): boolean {
   return (
@@ -88,6 +89,8 @@ export default function FinancialCalculatorPage() {
           <SchemeMatchResultCard result={schemeResult} />
         </div>
       </div>
+
+      <GuideNote />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { ViabilityScoreCard } from "@/components/entrepreneur/ViabilityScoreCard
 import { CompetitorDensityCard } from "@/components/entrepreneur/CompetitorDensityCard";
 import { RoleModelRealityCheck } from "@/components/entrepreneur/RoleModelRealityCheck";
 import { OpportunityMapSection } from "@/components/entrepreneur/OpportunityMapSection";
+import { GuideNote } from "@/components/shared/GuideNote";
 
 export default function OpportunityAnalysisPage() {
   const report = mockFeasibilityReport;
@@ -51,6 +52,8 @@ export default function OpportunityAnalysisPage() {
       <div className="border-t border-border-default pt-6">
         <RoleModelRealityCheck data={report.roleModelRealityCheck} />
       </div>
+
+      <GuideNote />
     </div>
   );
 }

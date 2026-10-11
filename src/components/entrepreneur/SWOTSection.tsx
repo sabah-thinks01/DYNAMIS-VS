@@ -1,5 +1,6 @@
 import React from "react";
 import { FeasibilityReport } from "@/types";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 interface Props {
   swot: FeasibilityReport["swot"];
@@ -15,9 +16,17 @@ export function SWOTSection({ swot }: Props) {
 
   return (
     <div className="app-card rounded-2xl p-6 border-border-default/80">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted border-b border-border-default/60 pb-3 mb-5">
-        AI-Generated SWOT Analysis
-      </h3>
+      <div className="border-b border-border-default/60 pb-3 mb-5">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+            SWOT Analysis
+          </h3>
+          <SampleDataTag variant="sample" />
+        </div>
+        <p className="text-xs text-muted mt-1">
+          A guide based on your market data, not a guarantee.
+        </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {quadrants.map((quad) => {
           // Dark mode friendly color mapping

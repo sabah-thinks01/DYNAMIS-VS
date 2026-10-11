@@ -1,5 +1,6 @@
 import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
 import { SWOTSection } from "@/components/entrepreneur/SWOTSection";
+import { GuideNote } from "@/components/shared/GuideNote";
 
 export default function SWOTAnalysisPage() {
   const report = mockFeasibilityReport;
@@ -16,6 +17,8 @@ export default function SWOTAnalysisPage() {
       </div>
 
       <SWOTSection swot={report.swot} />
+
+      <GuideNote />
     </div>
   );
 }

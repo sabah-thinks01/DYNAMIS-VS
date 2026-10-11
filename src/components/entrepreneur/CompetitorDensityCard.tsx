@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { FeasibilityReport } from "@/types";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 interface Props {
   density: FeasibilityReport["competitorDensity"];
@@ -50,9 +51,7 @@ export function CompetitorDensityCard({ density }: Props) {
   return (
     <div className="app-card rounded-2xl p-6 border-border-default shadow-card relative">
       {isSample && (
-        <div className="absolute top-4 right-4 bg-surface-subtle border border-border-default text-[10px] text-muted px-2 py-0.5 rounded-full">
-          Sample data
-        </div>
+        <SampleDataTag variant="sample" className="absolute top-4 right-4" />
       )}
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted border-b border-border-default/60 pb-3 mb-5">
         Competitor Density Analysis

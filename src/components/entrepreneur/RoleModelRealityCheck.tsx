@@ -1,5 +1,6 @@
 import React from "react";
 import { FeasibilityReport } from "@/types";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 interface Props {
   data: FeasibilityReport["roleModelRealityCheck"];
@@ -14,9 +15,12 @@ export function RoleModelRealityCheck({ data }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h3 className="text-sm font-semibold text-main">
-            {data.title}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-main">
+              {data.title}
+            </h3>
+            <SampleDataTag variant="illustrative" />
+          </div>
         </div>
         
         <p className="text-sm text-main mb-4 leading-relaxed max-w-3xl">

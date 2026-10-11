@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
 import { mockMarketReach } from "@/lib/mockData/mockMarketReach";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
+import { GuideNote } from "@/components/shared/GuideNote";
 
 export default function MarketReachPage() {
   const report = mockFeasibilityReport;
@@ -23,9 +25,12 @@ export default function MarketReachPage() {
         {/* Estimated Reach Radius */}
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Estimated Reach Radius
-            </h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                Estimated Reach Radius
+              </h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <div className="flex items-baseline gap-1.5 mt-2">
               <span className="text-4xl font-semibold text-main">
                 {reach.estimatedReachRadiusKm}
@@ -41,9 +46,12 @@ export default function MarketReachPage() {
         {/* Population Within Reach */}
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Population in Reach
-            </h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                Population in Reach
+              </h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <div className="flex items-baseline gap-1 mt-2">
               <span className="text-4xl font-semibold text-main">
                 {new Intl.NumberFormat("en-IN").format(reach.populationInReach)}
@@ -58,9 +66,12 @@ export default function MarketReachPage() {
         {/* Footfall Potential */}
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Footfall Potential
-            </h3>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                Footfall Potential
+              </h3>
+              <SampleDataTag variant="sample" />
+            </div>
             <div className="mt-3 flex items-center">
               <span className="status-pill">
                 {reach.footfallPotential}
@@ -87,6 +98,8 @@ export default function MarketReachPage() {
           ))}
         </ul>
       </div>
+
+      <GuideNote />
 
       {/* Prev/Next Navigation */}
       <div className="fixed md:static bottom-0 inset-x-0 z-20 bg-surface/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t border-border-default p-4 md:p-0 md:pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0 flex flex-col md:flex-row justify-between items-center gap-4">

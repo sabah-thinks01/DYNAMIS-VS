@@ -1,5 +1,6 @@
 import React from "react";
 import { FeasibilityReport } from "@/types";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 interface Props {
   businessName: string;
@@ -32,7 +33,10 @@ export function ViabilityScoreCard({ businessName, location, viabilityScore }: P
       style={{ boxShadow: `0 10px 40px -10px ${glowColor}` }}
     >
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-main">{businessName}</h2>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-bold text-main">{businessName}</h2>
+          <SampleDataTag variant="sample" />
+        </div>
         <div className="text-xs text-muted flex items-center space-x-2 mt-1.5">
           <svg className="w-3.5 h-3.5 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

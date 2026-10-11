@@ -21,7 +21,7 @@ export const mockFeasibilityReport: FeasibilityReport = {
   productMarketValue: {
     // TODO: Connect to real pricing / purchasing-power data layer
     suggestedPriceRange: "₹350 – ₹420 per 25kg bag",
-    localComparison: "Similar businesses in this area price between ₹380 and ₹450. A slightly lower entry price is suggested to capture initial market share.",
+    localComparison: "Similar businesses in this area price between ₹380 and ₹450. Work out your own cost per bag before choosing your price.",
     purchasingPowerIndicator: "Medium",
   },
   roleModelRealityCheck: {
@@ -41,7 +41,6 @@ export const mockFeasibilityReport: FeasibilityReport = {
       "Limited initial storage capacity during peak rains",
     ],
     opportunities: [
-      "Government subsidy support under NBCFDC Agro-allied scheme",
       "Growing regional demand for certified organic produce",
       "Potential bulk supply contracts with local horticulture nurseries",
     ],

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { mockApplicants } from "@/lib/mockData/mockApplicants";
 import { ApplicantFilterBar, FilterState } from "@/components/officer/ApplicantFilterBar";
 import { ApplicantTable } from "@/components/officer/ApplicantTable";
+import { SampleDataTag } from "@/components/shared/SampleDataTag";
 
 export function ApplicantConsoleSection() {
   const [filters, setFilters] = useState<FilterState>({
@@ -27,6 +28,13 @@ export function ApplicantConsoleSection() {
   return (
     <div className="app-card rounded-2xl shadow-xl border border-border-default/80 overflow-hidden">
       <ApplicantFilterBar filters={filters} onFilterChange={setFilters} />
+
+      <div className="px-4 py-2.5 bg-surface-subtle/50 border-t border-border-default flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">
+          Applications List
+        </span>
+        <SampleDataTag variant="sample" />
+      </div>
 
       <div className="p-0 border-t border-border-default">
         <ApplicantTable applicants={filteredApplicants} />
