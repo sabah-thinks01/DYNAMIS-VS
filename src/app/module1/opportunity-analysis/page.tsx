@@ -1,5 +1,5 @@
 import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
-import { ViabilityScoreCard } from "@/components/entrepreneur/ViabilityScoreCard";
+import { OpportunityHeader } from "@/components/entrepreneur/OpportunityHeader";
 import { CompetitorDensityCard } from "@/components/entrepreneur/CompetitorDensityCard";
 import { RoleModelRealityCheck } from "@/components/entrepreneur/RoleModelRealityCheck";
 import { OpportunityMapSection } from "@/components/entrepreneur/OpportunityMapSection";
@@ -16,14 +16,14 @@ export default function OpportunityAnalysisPage() {
           Opportunity Analysis
         </h1>
         <p className="page-subtitle">
-          Automated location-based viability evaluation and competitor mapping for {report.businessName}.
+          Automated location-based viability evaluation and competitor mapping for your business.
         </p>
       </div>
 
-      <ViabilityScoreCard
-        businessName={report.businessName}
-        location={report.location}
-        viabilityScore={report.viabilityScore}
+      <OpportunityHeader
+        sampleBusinessName={report.businessName}
+        sampleLocation={report.location}
+        sampleScore={report.viabilityScore}
       />
 
       {/* Map and Stats Grid */}

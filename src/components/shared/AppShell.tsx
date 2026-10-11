@@ -7,9 +7,10 @@ import { Navbar } from "@/components/shared/Navbar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Menu } from "lucide-react";
-import { getSession } from "@/lib/session";
+import { getSession, setSession } from "@/lib/session";
 import { useProfile } from "@/lib/profile/useProfile";
 import { getProfile } from "@/lib/profile/profileStore";
+import { RoleContext } from "@/lib/role/RoleContext";
 
 export type Role = "entrepreneur" | "officer";
 
@@ -112,12 +113,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   function handleRoleChange(newRole: Role) {
     setCurrentRole(newRole);
+    const session = getSession();
+    if (session) {
+      setSession({ ...session, role: newRole });
+    }
     router.push(ROLE_HOME[newRole]);
   }
 
   // ── LOGIN ROUTE: render children bare (no sidebar/header/footer) ──────────
   if (isLoginRoute) {
-    return <>{children}</>;
+    return <RoleContext.Provider value={currentRole}>{children}</RoleContext.Provider>;
   }
 
   // ── PROTECTED ROUTE, CHECK IN FLIGHT: show spinner only ──────────────────
@@ -128,58 +133,62 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // ── /start ROUTE: minimal shell (header only, no sidebar) ────────────────
   if (isStartRoute) {
     return (
-      <div className="flex min-h-screen flex-col bg-page text-main">
-        <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 md:px-8 bg-surface/90 backdrop-blur-md border-b border-border-default">
-          <Link
-            href={ROLE_HOME[currentRole]}
-            className="flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-          >
-            <span className="text-white font-extrabold text-base px-2.5 py-1 rounded-lg tracking-wide shadow-md bg-accent-strong">
-              DYNAMIS
-            </span>
-            <span className="text-[10px] text-muted font-medium leading-tight hidden sm:block">
-              Rural Credit<br />Platform
-            </span>
-          </Link>
+      <RoleContext.Provider value={currentRole}>
+        <div className="flex min-h-screen flex-col bg-page text-main">
+          <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 md:px-8 bg-surface/90 backdrop-blur-md border-b border-border-default">
+            <Link
+              href={ROLE_HOME[currentRole]}
+              className="flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <span className="text-white font-extrabold text-base px-2.5 py-1 rounded-lg tracking-wide shadow-md bg-accent-strong">
+                DYNAMIS
+              </span>
+              <span className="text-[10px] text-muted font-medium leading-tight hidden sm:block">
+                Rural Credit<br />Platform
+              </span>
+            </Link>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
-          </div>
-        </header>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
+            </div>
+          </header>
 
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
-          {children}
-        </main>
-      </div>
+          <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
+            {children}
+          </main>
+        </div>
+      </RoleContext.Provider>
     );
   }
 
   // ── PROTECTED ROUTE, SESSION CONFIRMED: render full shell ────────────────
   return (
-    <div className="flex min-h-screen bg-page text-main">
-      <Navbar currentRole={currentRole} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+    <RoleContext.Provider value={currentRole}>
+      <div className="flex min-h-screen bg-page text-main">
+        <Navbar currentRole={currentRole} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
-      <div className="flex flex-col flex-1 md:ml-64 min-h-screen min-w-0 transition-all duration-200">
-        <header className="sticky top-0 z-30 h-16 flex items-center justify-between md:justify-end px-4 md:px-6 bg-surface/90 backdrop-blur-md border-b border-border-default">
-          <button
-            className="md:hidden p-2 -ml-2 text-muted hover:text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded-md"
-            onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+        <div className="flex flex-col flex-1 md:ml-64 min-h-screen min-w-0 transition-all duration-200">
+          <header className="sticky top-0 z-30 h-16 flex items-center justify-between md:justify-end px-4 md:px-6 bg-surface/90 backdrop-blur-md border-b border-border-default">
+            <button
+              className="md:hidden p-2 -ml-2 text-muted hover:text-main focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded-md"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
-          </div>
-        </header>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
+            </div>
+          </header>
 
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
-          {children}
-        </main>
+          <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </RoleContext.Provider>
   );
 }

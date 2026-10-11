@@ -5,10 +5,41 @@ import { SampleDataTag } from "@/components/shared/SampleDataTag";
 interface Props {
   businessName: string;
   location: string;
-  viabilityScore: FeasibilityReport["viabilityScore"];
+  viabilityScore: number | null;
 }
 
 export function ViabilityScoreCard({ businessName, location, viabilityScore }: Props) {
+  if (viabilityScore == null) {
+    return (
+      <div className="app-card rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-border-default shadow-card">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-main">{businessName}</h2>
+          <div className="text-xs text-muted flex items-center space-x-2 mt-1.5">
+            <svg className="w-3.5 h-3.5 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{location}</span>
+          </div>
+          <p className="text-xs text-muted mt-3 max-w-xl leading-relaxed">
+            We need population data for your area before we can score it. For now, look at the sellers nearby below.
+          </p>
+        </div>
+
+        <div className="flex flex-col text-left sm:text-right border border-border-default bg-surface-subtle/50 rounded-2xl px-5 py-3.5 shrink-0 self-start sm:self-auto min-w-[200px]">
+          <span className="text-sm font-semibold text-main">
+            Not checked for your area yet
+          </span>
+          <span className="text-[11px] text-muted mt-0.5">
+            Chance of success · Viability Score
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   // Derive category from numeric score
   const category = viabilityScore >= 75 ? "High" : viabilityScore >= 50 ? "Medium" : "Low";
 

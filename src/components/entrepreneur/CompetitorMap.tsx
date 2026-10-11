@@ -49,9 +49,12 @@ interface CompetitorMapProps {
     distanceKm: number;
     typeMatch: string;
   }[];
+  focus?: { lat: number; lng: number; key: string };
+  keywords?: string[];
+  onUserLocate?: () => void;
 }
 
-export default function CompetitorMap({ centerLat, centerLng, competitors }: CompetitorMapProps) {
+export default function CompetitorMap({ centerLat, centerLng, competitors, focus, keywords, onUserLocate }: CompetitorMapProps) {
   const uniqueId = useId();
   const mapContainerId = `mappls-map-${uniqueId.replace(/[^a-zA-Z0-9]/g, "")}`;
   
@@ -74,6 +77,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
   const centerInfoWindowRef = useRef<any>(null);
   const realPinsRef = useRef<any[]>([]);
   const pluginInjectedRef = useRef(false);
+  const appliedFocusRef = useRef<string | null>(null);
 
   const mapplsKey = process.env.NEXT_PUBLIC_MAPPLS_MAP_KEY || "";
 
@@ -209,11 +213,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     setRealDataState('loading');
 
     const timeout = setTimeout(async () => {
-      const distinctKeywords = Array.from(new Set([
+      const defaultKeywords = [
         ...MATCH_TIERS.exact,
         ...MATCH_TIERS.partial,
         ...MATCH_TIERS.similar
-      ]));
+      ];
+      const distinctKeywords = Array.from(new Set(
+        keywords && keywords.length ? keywords : defaultKeywords
+      ));
 
       const effectiveRadiusKm = Math.min(radiusKm, NEARBY_MAX_RADIUS_KM);
       const requestRadiusM = effectiveRadiusKm * 1000;
@@ -242,8 +249,12 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
 
           for (const item of (res.data.results || [])) {
             let assignedTier = 'similar';
-            if (MATCH_TIERS.exact.includes(res.kw)) assignedTier = 'exact';
-            else if (MATCH_TIERS.partial.includes(res.kw)) assignedTier = 'partial';
+            if (keywords && keywords.length > 0) {
+              if (keywords.includes(res.kw)) assignedTier = 'exact';
+            } else {
+              if (MATCH_TIERS.exact.includes(res.kw)) assignedTier = 'exact';
+              else if (MATCH_TIERS.partial.includes(res.kw)) assignedTier = 'partial';
+            }
             
             const existing = mergedByELoc.get(item.eLoc);
             const tierScore = (t: string) => t === 'exact' ? 3 : t === 'partial' ? 2 : 1;
@@ -311,7 +322,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
       active = false;
       clearTimeout(timeout);
     };
-  }, [searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded, isMapReady]);
+  }, [searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded, isMapReady, keywords?.join(",")]);
 
   // Marker Lifecycle Effect (runs on filter/center change)
   useEffect(() => {
@@ -453,6 +464,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim() || !mapplsKey || isSearching) return;
+    onUserLocate?.();
     
     setIsSearching(true);
     try {
@@ -500,7 +512,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors }: Com
     }
   };
 
+  useEffect(() => {
+    if (!isMapReady || !focus || appliedFocusRef.current === focus.key) return;
+    appliedFocusRef.current = focus.key;
+    handleSelectResult({ lat: focus.lat, lng: focus.lng });
+  }, [isMapReady, focus?.key]);
+
   const handleGpsLocation = () => {
+    onUserLocate?.();
     if (!("geolocation" in navigator) || window.isSecureContext === false) {
       alert("Location is not available on this device or connection. Please type your place name instead.");
       return;
