@@ -134,7 +134,21 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
             })}
           </div>
 
-          <div className="px-2 pb-2 border-t border-border-default pt-2">
+          <div className="px-2 pb-2 border-t border-border-default pt-2 space-y-1">
+            {currentRole === "entrepreneur" && (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  router.push("/start");
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-main hover:bg-surface-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              >
+                <svg className="w-4 h-4 shrink-0 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="text-xs font-medium">My answers</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 clearSession();

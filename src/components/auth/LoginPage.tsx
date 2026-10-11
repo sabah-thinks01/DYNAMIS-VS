@@ -8,6 +8,8 @@ import type { Role } from "@/components/shared/AppShell";
 import { ROLE_HOME } from "@/components/shared/AppShell";
 import { setSession } from "@/lib/session";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { LanguagePickStep } from "@/components/auth/LanguagePickStep";
+import { getProfile } from "@/lib/profile/profileStore";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -366,17 +368,36 @@ function SignInCard({ onSuccess }: SignInCardProps) {
 
 export function LoginPage() {
   const router = useRouter();
+  const [step, setStep] = useState<"auth" | "language">("auth");
+  const [pendingAuth, setPendingAuth] = useState<{ role: Role; mobile: string } | null>(null);
 
-  const handleSuccess = useCallback(
+  const handleAuthSuccess = useCallback(
     (role: Role, mobile: string) => {
       setSession({ role, mobile });
       // Set the data-role attribute so AppShell picks up the right accent immediately
       const dataRole = role === "officer" ? "sca-officer" : "entrepreneur";
       document.documentElement.setAttribute("data-role", dataRole);
-      router.replace(ROLE_HOME[role]);
+      setPendingAuth({ role, mobile });
+      setStep("language");
     },
-    [router]
+    []
   );
+
+  const handleLanguageComplete = useCallback(() => {
+    if (!pendingAuth) return;
+    const { role, mobile } = pendingAuth;
+
+    if (role === "officer") {
+      router.replace(ROLE_HOME.officer);
+    } else {
+      const profile = getProfile(mobile);
+      if (profile?.quickStart) {
+        router.replace(ROLE_HOME.entrepreneur);
+      } else {
+        router.replace("/start");
+      }
+    }
+  }, [pendingAuth, router]);
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
@@ -399,9 +420,17 @@ export function LoginPage() {
             backgroundImage: 'radial-gradient(circle at 85% 15%, var(--accent-subtle) 0%, transparent 45%), radial-gradient(circle at 15% 85%, var(--accent-glow) 0%, transparent 45%)'
           }}
         >
-          {/* Sign-in card — centred */}
+          {/* Sign-in / Language card — centred */}
           <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-16 relative z-10">
-            <SignInCard onSuccess={handleSuccess} />
+            {step === "auth" ? (
+              <SignInCard onSuccess={handleAuthSuccess} />
+            ) : pendingAuth ? (
+              <LanguagePickStep
+                role={pendingAuth.role}
+                mobile={pendingAuth.mobile}
+                onContinue={handleLanguageComplete}
+              />
+            ) : null}
           </div>
 
           {/* Mobile-only: feature list after card */}

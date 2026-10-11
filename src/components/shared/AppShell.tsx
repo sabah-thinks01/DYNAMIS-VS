@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Navbar } from "@/components/shared/Navbar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Menu } from "lucide-react";
 import { getSession } from "@/lib/session";
+import { useProfile } from "@/lib/profile/useProfile";
+import { getProfile } from "@/lib/profile/profileStore";
 
 export type Role = "entrepreneur" | "officer";
 
@@ -43,10 +46,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
    */
   const [sessionChecked, setSessionChecked] = useState(false);
 
+  const { profile, ready: profileReady } = useProfile();
+
   const router   = useRouter();
   const pathname = usePathname();
 
   const isLoginRoute = pathname === "/";
+  const isStartRoute = pathname === "/start";
 
   // ─── Session guard ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -66,16 +72,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setCurrentRole(session.role);
       setSessionChecked(true);
     }
-  // pathname (via isLoginRoute) and router are stable references; listing them
-  // prevents the exhaustive-deps lint warning without causing extra runs.
   }, [isLoginRoute, router]);
 
-  // ─── Existing role-guard (Entrepreneur can't visit /officer/*) ───────────
+  // ─── Role guard (Entrepreneur can't visit /officer/*, Officer can't visit /start) ───
   useEffect(() => {
     if (currentRole === "entrepreneur" && pathname.startsWith("/officer")) {
       router.replace(ROLE_HOME.entrepreneur);
+    } else if (currentRole === "officer" && pathname === "/start") {
+      router.replace(ROLE_HOME.officer);
     }
   }, [currentRole, pathname, router]);
+
+  // ─── Quick Start redirect for entrepreneurs without completed profile ─────
+  useEffect(() => {
+    if (
+      !isLoginRoute &&
+      sessionChecked &&
+      profileReady &&
+      currentRole === "entrepreneur" &&
+      !profile?.quickStart &&
+      pathname !== "/start"
+    ) {
+      const freshProfile = getProfile();
+      if (!freshProfile?.quickStart) {
+        router.replace("/start");
+      }
+    }
+  }, [isLoginRoute, sessionChecked, profileReady, currentRole, profile, pathname, router]);
 
   // ─── Close mobile menu on navigation ─────────────────────────────────────
   useEffect(() => {
@@ -93,17 +116,43 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // ── LOGIN ROUTE: render children bare (no sidebar/header/footer) ──────────
-  // The LoginPage carries its own full-page layout.
   if (isLoginRoute) {
     return <>{children}</>;
   }
 
   // ── PROTECTED ROUTE, CHECK IN FLIGHT: show spinner only ──────────────────
-  // sessionChecked stays false until getSession() resolves (or redirect fires).
-  // Children are never rendered in this branch, so there is no flash of
-  // protected content.
-  if (!sessionChecked) {
+  if (!sessionChecked || !profileReady) {
     return <SessionCheckingSpinner />;
+  }
+
+  // ── /start ROUTE: minimal shell (header only, no sidebar) ────────────────
+  if (isStartRoute) {
+    return (
+      <div className="flex min-h-screen flex-col bg-page text-main">
+        <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 md:px-8 bg-surface/90 backdrop-blur-md border-b border-border-default">
+          <Link
+            href={ROLE_HOME[currentRole]}
+            className="flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            <span className="text-white font-extrabold text-base px-2.5 py-1 rounded-lg tracking-wide shadow-md bg-accent-strong">
+              DYNAMIS
+            </span>
+            <span className="text-[10px] text-muted font-medium leading-tight hidden sm:block">
+              Rural Credit<br />Platform
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <RoleSwitcher currentRole={currentRole} onRoleChange={handleRoleChange} />
+          </div>
+        </header>
+
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-8 flex flex-col gap-6">
+          {children}
+        </main>
+      </div>
+    );
   }
 
   // ── PROTECTED ROUTE, SESSION CONFIRMED: render full shell ────────────────
