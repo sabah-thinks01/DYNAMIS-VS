@@ -3,12 +3,13 @@ import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
 import { mockMarketReach } from "@/lib/mockData/mockMarketReach";
 import { SampleDataTag } from "@/components/shared/SampleDataTag";
 import { GuideNote } from "@/components/shared/GuideNote";
+import { MarketReachSwitch } from "@/components/entrepreneur/MarketReachPanel";
 
 export default function MarketReachPage() {
   const report = mockFeasibilityReport;
   const reach = mockMarketReach;
 
-  return (
+  const sampleMarkup = (
     <div className="space-y-8 pb-24 md:pb-0">
       {/* Page Header */}
       <div className="pb-6 border-b border-border-default">
@@ -114,4 +115,6 @@ export default function MarketReachPage() {
       </div>
     </div>
   );
+
+  return <MarketReachSwitch sampleView={sampleMarkup} />;
 }
