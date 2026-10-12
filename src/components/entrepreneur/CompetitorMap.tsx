@@ -305,7 +305,9 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
               avgDistanceKm: minDistanceKm,
               effectiveRadiusKm,
               sliderRadiusKm: radiusKm,
-              isSampleData: false
+              isSampleData: false,
+              centerLat: activeCenter[0],
+              centerLng: activeCenter[1],
             }
           }));
         }
