@@ -1,0 +1,198 @@
+[
+  {
+    "state": "Maharashtra",
+    "postal": "AHMED NAGAR",
+    "census2011": "Ahmadnagar",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "BEED",
+    "census2011": "Bid",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "BULDHANA",
+    "census2011": "Buldana",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "GONDIA",
+    "census2011": "Gondiya",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "JALGOAN",
+    "census2011": "Jalgaon",
+    "kind": "typo",
+    "note": "Typo in India Post directory"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "MUMBAI SUBUEBAN",
+    "census2011": "Mumbai Suburban",
+    "kind": "typo",
+    "note": "Typo in India Post directory"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "RAIGARH(MH)",
+    "census2011": "Raigarh",
+    "kind": "spelling",
+    "note": "State suffix in postal directory"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "MALEGAON",
+    "census2011": "Nashik",
+    "kind": "postalDivision",
+    "note": "Malegaon postal division is in Nashik district"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "MIRAJ",
+    "census2011": "Sangli",
+    "kind": "postalDivision",
+    "note": "Miraj postal division is in Sangli district"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "BHUSAWAL",
+    "census2011": "Jalgaon",
+    "kind": "postalDivision",
+    "note": "Bhusawal postal division is in Jalgaon district"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "SHRIRAMPUR",
+    "census2011": "Ahmadnagar",
+    "kind": "postalDivision",
+    "note": "Shrirampur postal division is in Ahmadnagar district"
+  },
+  {
+    "state": "Maharashtra",
+    "postal": "PALGHAR",
+    "census2011": "Thane",
+    "kind": "newDistrict",
+    "note": "Palghar was part of Thane district in Census 2011 (created 2014)"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "KANCHIPURAM",
+    "census2011": "Kancheepuram",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "KANYAKUMARI",
+    "census2011": "Kanniyakumari",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "NILGIRIS",
+    "census2011": "The Nilgiris",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "TIRUVALLUR",
+    "census2011": "Thiruvallur",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "TIRUVARUR",
+    "census2011": "Thiruvarur",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "TUTICORIN",
+    "census2011": "Thoothukkudi",
+    "kind": "spelling",
+    "note": "Standard official name in Census 2011"
+  },
+  {
+    "state": "Tamil Nadu",
+    "postal": "VILLUPURAM",
+    "census2011": "Viluppuram",
+    "kind": "spelling",
+    "note": "Standard spelling in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "CENTRAL DELHI",
+    "census2011": "Central",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "EAST DELHI",
+    "census2011": "East",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "NORTH DELHI",
+    "census2011": "North",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "NORTH EAST DELHI",
+    "census2011": "North East",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "NORTH WEST DELHI",
+    "census2011": "North West",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "SOUTH DELHI",
+    "census2011": "South",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "SOUTH WEST DELHI",
+    "census2011": "South West",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "WEST DELHI",
+    "census2011": "West",
+    "kind": "spelling",
+    "note": "Standard naming in Census 2011"
+  },
+  {
+    "state": "Delhi",
+    "postal": "SHAHDARA",
+    "census2011": "East",
+    "kind": "newDistrict",
+    "note": "Shahdara district was created after 2011; East district figures used as an approximation"
+  }
+]
