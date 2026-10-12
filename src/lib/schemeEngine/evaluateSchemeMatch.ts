@@ -84,19 +84,19 @@ export function evaluateSchemeMatch(
   // ---- Defensive input validation ----
 
   if (input == null) {
-    return { eligible: false, ineligibilityReason: "No input provided." };
+    return { eligible: false, ineligibilityReason: "Fill in your details." };
   }
 
   if (typeof input.projectCost !== "number" || !isFinite(input.projectCost)) {
     return {
       eligible: false,
-      ineligibilityReason: "Project cost must be a valid number.",
+      ineligibilityReason: "Enter how much money you need.",
     };
   }
   if (input.projectCost <= 0) {
     return {
       eligible: false,
-      ineligibilityReason: "Project cost must be a positive amount.",
+      ineligibilityReason: "Enter how much money you need.",
     };
   }
 
@@ -106,20 +106,20 @@ export function evaluateSchemeMatch(
   ) {
     return {
       eligible: false,
-      ineligibilityReason: "Annual family income must be a valid number.",
+      ineligibilityReason: "Enter your family income as a number.",
     };
   }
   if (input.annualFamilyIncome < 0) {
     return {
       eligible: false,
-      ineligibilityReason: "Annual family income cannot be negative.",
+      ineligibilityReason: "Family income can't be less than zero.",
     };
   }
 
   if (!input.state || typeof input.state !== "string" || input.state.trim() === "") {
     return {
       eligible: false,
-      ineligibilityReason: "State of operation is required.",
+      ineligibilityReason: "Choose your state.",
     };
   }
 
@@ -127,7 +127,7 @@ export function evaluateSchemeMatch(
   if (!validCategories.includes(input.category as (typeof validCategories)[number])) {
     return {
       eligible: false,
-      ineligibilityReason: `Invalid category "${input.category}". Must be one of: ${validCategories.join(", ")}.`,
+      ineligibilityReason: "Choose your category.",
     };
   }
 
@@ -143,7 +143,7 @@ export function evaluateSchemeMatch(
   if (input.annualFamilyIncome > INCOME_CEILING_ANNUAL) {
     return {
       eligible: false,
-      ineligibilityReason: `Annual family income (₹${input.annualFamilyIncome.toLocaleString("en-IN")}) exceeds the NBCFDC eligibility ceiling of ₹${INCOME_CEILING_ANNUAL.toLocaleString("en-IN")}.`,
+      ineligibilityReason: `Your family income (₹${input.annualFamilyIncome.toLocaleString("en-IN")}) is above the limit for this loan (₹${INCOME_CEILING_ANNUAL.toLocaleString("en-IN")}).`,
     };
   }
 
@@ -158,7 +158,7 @@ export function evaluateSchemeMatch(
   } else {
     return {
       eligible: false,
-      ineligibilityReason: `Project cost (₹${input.projectCost.toLocaleString("en-IN")}) exceeds the maximum scheme ceiling of ₹${TERM_LOAN_CEILING.toLocaleString("en-IN")}.`,
+      ineligibilityReason: `The money you need (₹${input.projectCost.toLocaleString("en-IN")}) is more than this loan allows (₹${TERM_LOAN_CEILING.toLocaleString("en-IN")}).`,
     };
   }
 

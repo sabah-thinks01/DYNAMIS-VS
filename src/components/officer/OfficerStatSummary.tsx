@@ -14,7 +14,7 @@ export function OfficerStatSummary({ stats }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-              Pending Review
+              Waiting for review
             </span>
             <SampleDataTag variant="sample" />
           </div>
@@ -25,7 +25,7 @@ export function OfficerStatSummary({ stats }: Props) {
           </span>
         </div>
         <p className="text-3xl font-semibold text-main mt-2">{stats.totalPending}</p>
-        <p className="text-xs text-[var(--status-warning)] font-medium mt-1">Requires immediate action</p>
+        <p className="text-xs text-[var(--status-warning)] font-medium mt-1">Needs a decision</p>
       </div>
 
       {/* Approved This Quarter */}
@@ -33,7 +33,7 @@ export function OfficerStatSummary({ stats }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-              Approved (Qtr)
+              Approved this quarter
             </span>
             <SampleDataTag variant="sample" />
           </div>
@@ -52,7 +52,7 @@ export function OfficerStatSummary({ stats }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-              High Risk Flags
+              High-risk applications
             </span>
             <SampleDataTag variant="sample" />
           </div>
@@ -63,7 +63,7 @@ export function OfficerStatSummary({ stats }: Props) {
           </span>
         </div>
         <p className="text-3xl font-semibold text-main mt-2">{stats.highRiskCount}</p>
-        <p className="text-xs text-muted mt-1">Pending deeper diligence</p>
+        <p className="text-xs text-muted mt-1">Check these more carefully</p>
       </div>
 
       {/* Funds Disbursed */}
@@ -71,7 +71,7 @@ export function OfficerStatSummary({ stats }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-              Funds Disbursed
+              Loans paid out
             </span>
             <SampleDataTag variant="sample" />
           </div>
@@ -84,7 +84,7 @@ export function OfficerStatSummary({ stats }: Props) {
         <p className="text-3xl font-semibold text-main mt-2">
           ₹{(stats.totalDisbursedAmount / 100000).toFixed(1)}L
         </p>
-        <p className="text-xs text-muted mt-1">Total to Date</p>
+        <p className="text-xs text-muted mt-1">Total so far</p>
       </div>
     </div>
   );

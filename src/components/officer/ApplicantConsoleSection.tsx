@@ -31,7 +31,7 @@ export function ApplicantConsoleSection() {
 
       <div className="px-4 py-2.5 bg-surface-subtle/50 border-t border-border-default flex items-center justify-between gap-2 flex-wrap">
         <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">
-          Applications List
+          Applications
         </span>
         <SampleDataTag variant="sample" />
       </div>

@@ -7,10 +7,10 @@ interface Props {
 
 export function CalculatorStepIndicator({ currentStep, onStepClick }: Props) {
   const steps = [
-    { num: 1, label: "Business & Category" },
-    { num: 2, label: "Cost & Income" },
-    { num: 3, label: "Location" },
-    { num: 4, label: "Calculation" },
+    { num: 1, label: "Your business" },
+    { num: 2, label: "Money" },
+    { num: 3, label: "Your state" },
+    { num: 4, label: "Check" },
   ];
 
   return (

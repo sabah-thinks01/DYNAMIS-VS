@@ -14,10 +14,11 @@ export default function MarketReachPage() {
       {/* Page Header */}
       <div className="pb-6 border-b border-border-default">
         <h1 className="page-title">
-          Market Reach
+          Who will buy from you?
         </h1>
+        <p className="text-xs text-muted mb-2">Market Reach</p>
         <p className="page-subtitle">
-          Distribution radius and market size estimates for {report.businessName}.
+          Sample business: {report.businessName}.
         </p>
       </div>
 
@@ -27,9 +28,12 @@ export default function MarketReachPage() {
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Estimated Reach Radius
-              </h3>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  How far your customers live
+                </h3>
+                <p className="text-[10px] text-muted">Estimated reach radius</p>
+              </div>
               <SampleDataTag variant="sample" />
             </div>
             <div className="flex items-baseline gap-1.5 mt-2">
@@ -40,7 +44,7 @@ export default function MarketReachPage() {
             </div>
           </div>
           <p className="text-sm text-muted leading-relaxed">
-            Effective service area based on standard local distribution logistics.
+            Most buyers will come from inside this distance.
           </p>
         </div>
 
@@ -48,9 +52,12 @@ export default function MarketReachPage() {
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Population in Reach
-              </h3>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  People you can sell to
+                </h3>
+                <p className="text-[10px] text-muted">Population in reach</p>
+              </div>
               <SampleDataTag variant="sample" />
             </div>
             <div className="flex items-baseline gap-1 mt-2">
@@ -60,7 +67,7 @@ export default function MarketReachPage() {
             </div>
           </div>
           <p className="text-sm text-muted leading-relaxed">
-            Total addressable population within the estimated {reach.estimatedReachRadiusKm} km radius.
+            People living within {reach.estimatedReachRadiusKm} km.
           </p>
         </div>
 
@@ -68,9 +75,12 @@ export default function MarketReachPage() {
         <div className="app-card p-6 flex flex-col justify-between gap-4">
           <div>
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Footfall Potential
-              </h3>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  How many people pass by
+                </h3>
+                <p className="text-[10px] text-muted">Footfall potential</p>
+              </div>
               <SampleDataTag variant="sample" />
             </div>
             <div className="mt-3 flex items-center">
@@ -80,7 +90,7 @@ export default function MarketReachPage() {
             </div>
           </div>
           <p className="text-sm text-muted leading-relaxed">
-            Projected relative to regional averages for this business category.
+            Compared with similar places nearby.
           </p>
         </div>
       </div>
@@ -88,7 +98,7 @@ export default function MarketReachPage() {
       {/* Key Reach Drivers: one neutral card, list items with small neutral marker, comfortable line height (1.6), 16px text */}
       <div className="app-card p-6 flex flex-col gap-4">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-          Key Reach Drivers
+          Why this spot works
         </h3>
         <ul className="space-y-3">
           {reach.drivingFactors.map((factor, idx) => (

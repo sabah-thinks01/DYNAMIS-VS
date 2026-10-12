@@ -20,7 +20,7 @@ const ROLES: {
 }[] = [
   {
     value:     "entrepreneur",
-    label:     "Entrepreneur",
+    label:     "Business owner",
     short:     "EN",
     bgClass:   "bg-emerald-500",
     ringClass: "ring-emerald-500/60",
@@ -60,7 +60,7 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
         aria-haspopup="true"
         aria-expanded={open}
         className="flex items-center gap-2 pl-2 pr-3 py-1.5 bg-surface hover:bg-surface-hover border border-border-default hover:border-border-strong rounded-full transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-        title="Switch role — navigates to that role's home"
+        title="Switch view"
       >
         <span
           className={`
@@ -73,7 +73,7 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
           {active.short}
         </span>
         <span className="text-xs text-main font-medium hidden sm:block max-w-[120px] truncate">
-          {active.value === "entrepreneur" ? "Entrepreneur" : "SCA Officer"}
+          {active.value === "entrepreneur" ? "Business owner" : "SCA Officer"}
         </span>
         <svg
           className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -87,10 +87,10 @@ export function RoleSwitcher({ currentRole, onRoleChange }: RoleSwitcherProps) {
         <div className="absolute right-0 top-full mt-2 w-72 bg-surface border border-border-default rounded-xl shadow-card overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-border-default">
             <p className="text-[10px] font-bold text-muted uppercase tracking-widest">
-              Switch Role
+              Switch view
             </p>
             <p className="text-xs text-muted mt-0.5">
-              Navigates to that role&apos;s home — no real auth yet.
+              Prototype only: see the app as a business owner or an SCA officer.
             </p>
           </div>
 

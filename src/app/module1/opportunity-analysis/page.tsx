@@ -13,10 +13,11 @@ export default function OpportunityAnalysisPage() {
       {/* Page Header */}
       <div className="pb-6 border-b border-border-default">
         <h1 className="page-title">
-          Opportunity Analysis
+          Is this a good business here?
         </h1>
+        <p className="text-xs text-muted mb-2">Opportunity Analysis</p>
         <p className="page-subtitle">
-          Automated location-based viability evaluation and competitor mapping for your business.
+          We compare how many people live nearby with how many similar sellers are already there.
         </p>
       </div>
 
@@ -30,7 +31,7 @@ export default function OpportunityAnalysisPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="flex flex-col gap-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-            Local Competitor Map
+            Sellers near you
           </h3>
           {report.competitorDensity.centerLat && report.competitorDensity.centerLng && report.competitorDensity.competitors && (
             <OpportunityMapSection
@@ -43,7 +44,7 @@ export default function OpportunityAnalysisPage() {
 
         <div className="flex flex-col gap-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-            Saturation Stats
+            Sellers nearby in numbers
           </h3>
           <CompetitorDensityCard density={report.competitorDensity} />
         </div>

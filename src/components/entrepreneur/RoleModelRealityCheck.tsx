@@ -29,14 +29,14 @@ export function RoleModelRealityCheck({ data }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="bg-surface-subtle rounded-xl p-4 border border-border-default">
-            <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">Key Takeaway</span>
+            <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">What we can learn</span>
             <p className="text-xs font-medium text-main leading-normal">
               {data.keyTakeaway}
             </p>
           </div>
           
           <div className="bg-surface-subtle rounded-xl p-4 border border-border-default">
-            <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">Turnover Precedent</span>
+            <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">Her monthly sales</span>
             <p className="text-lg font-bold text-main mt-1">
               {data.monthlyTurnover}
             </p>

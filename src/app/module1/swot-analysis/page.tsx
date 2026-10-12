@@ -9,10 +9,11 @@ export default function SWOTAnalysisPage() {
     <div className="space-y-6">
       <div className="pb-6 border-b border-border-default">
         <h1 className="page-title">
-          SWOT Analysis
+          What helps you / What could hurt you
         </h1>
+        <p className="text-xs text-muted mb-2">SWOT Analysis</p>
         <p className="page-subtitle">
-          Strengths, Weaknesses, Opportunities, and Threats for {report.businessName}.
+          What works for and against {report.businessName}.
         </p>
       </div>
 

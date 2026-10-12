@@ -58,11 +58,11 @@ export default function FinancialCalculatorPage() {
       {/* Page Header */}
       <div className="pb-6 border-b border-border-default">
         <h1 className="page-title">
-          Financial Scheme &amp; EMI Calculator
+          Plan your loan
         </h1>
+        <p className="text-xs text-muted mb-2">Scheme &amp; EMI calculator</p>
         <p className="page-subtitle">
-          Determine NBCFDC scheme fit, estimated margin money split, and projected loan repayment
-          — all figures are indicative pending rate confirmation
+          See which government loan fits, how much you put in yourself, and your monthly payment. These are estimates.
         </p>
       </div>
 

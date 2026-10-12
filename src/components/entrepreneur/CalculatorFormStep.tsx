@@ -40,11 +40,11 @@ export function CalculatorFormStep({
       {step === 1 && (
         <div className="space-y-5">
           <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
-            Step 1: Select Business Activity &amp; Social Category
+            Step 1: Your business and category
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className={labelClassName}>Proposed Business Type</label>
+              <label className={labelClassName}>Type of business</label>
               <select value={formData.businessType} onChange={(e) => onChange({ businessType: e.target.value })} className={inputClassName}>
                 <option value="Bio-Fertilizer Unit">Bio-Fertilizer Unit</option>
                 <option value="Solar Cold Storage">Solar Cold Storage</option>
@@ -54,7 +54,7 @@ export function CalculatorFormStep({
               </select>
             </div>
             <div>
-              <label className={labelClassName}>Social Category (NBCFDC Eligible)</label>
+              <label className={labelClassName}>Your category</label>
               <select
                 value={formData.category}
                 onChange={(e) => onChange({ category: e.target.value as ApplicantInput["category"] })}
@@ -73,11 +73,11 @@ export function CalculatorFormStep({
       {step === 2 && (
         <div className="space-y-5">
           <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
-            Step 2: Capital Requirement &amp; Household Income
+            Step 2: Money needed and family income
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className={labelClassName}>Total Estimated Project Cost (₹)</label>
+              <label className={labelClassName}>Total money needed to start (₹)</label>
               <input
                 type="number" min={1}
                 value={formData.projectCost || ""}
@@ -85,12 +85,12 @@ export function CalculatorFormStep({
                 className={inputClassName} placeholder="e.g. 350000"
               />
               <span className="text-[10px] text-muted mt-1.5 flex items-center gap-1.5 flex-wrap">
-                <span>NBCFDC ceiling: ₹50,00,000 for Term Loan / ₹1,40,000 for Micro Finance</span>
+                <span>Loan limits depend on the scheme. We&apos;ll check them in the Loan Planner.</span>
                 <SampleDataTag variant="criteria" />
               </span>
             </div>
             <div>
-              <label className={labelClassName}>Annual Household Income (₹)</label>
+              <label className={labelClassName}>Family income per year (₹)</label>
               <input
                 type="number" min={0}
                 value={formData.annualFamilyIncome === 0 ? "" : formData.annualFamilyIncome}
@@ -98,7 +98,7 @@ export function CalculatorFormStep({
                 className={inputClassName} placeholder="e.g. 180000"
               />
               <span className="text-[10px] text-muted mt-1.5 block">
-                Income ceiling applies — see scheme guidelines for current limit
+                There is a family income limit for these loans.
               </span>
             </div>
           </div>
@@ -109,10 +109,10 @@ export function CalculatorFormStep({
       {step === 3 && (
         <div className="space-y-5">
           <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
-            Step 3: State Channelizing Agency (SCA) Jurisdiction
+            Step 3: Your state loan office
           </h3>
           <div>
-            <label className={labelClassName}>State of Operation</label>
+            <label className={labelClassName}>State where your business will be</label>
             <select value={formData.state} onChange={(e) => onChange({ state: e.target.value })} className={inputClassName}>
               <option value="Maharashtra">Maharashtra (MPBCDC)</option>
               <option value="Karnataka">Karnataka (KMDC)</option>
@@ -128,11 +128,11 @@ export function CalculatorFormStep({
       {step === 4 && (
         <div className="space-y-5">
           <h3 className="text-base font-bold text-main border-b border-border-default/60 pb-2">
-            Step 4: Review Inputs — Scheme Result Calculated Automatically
+            Step 4: Check your answers
           </h3>
           <div className="bg-surface p-5 rounded-xl border border-border-default space-y-3 text-sm">
             <div className="flex justify-between border-b border-border-default pb-2">
-              <span className="text-muted">Business Activity:</span>
+              <span className="text-muted">Business:</span>
               <span className="font-semibold text-main">{formData.businessType}</span>
             </div>
             <div className="flex justify-between border-b border-border-default pb-2">
@@ -140,26 +140,26 @@ export function CalculatorFormStep({
               <span className="font-semibold text-main">{formData.category}</span>
             </div>
             <div className="flex justify-between border-b border-border-default pb-2">
-              <span className="text-muted">Project Cost:</span>
+              <span className="text-muted">Money needed:</span>
               {/* text-accent-strong utility class — shifts with role */}
               <span className="font-semibold text-accent-strong">
                 ₹{(formData.projectCost || 0).toLocaleString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between border-b border-border-default pb-2">
-              <span className="text-muted">Annual Income:</span>
+              <span className="text-muted">Family income:</span>
               <span className="font-semibold text-main">
                 ₹{(formData.annualFamilyIncome || 0).toLocaleString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between pb-1">
-              <span className="text-muted">State SCA:</span>
+              <span className="text-muted">State loan office:</span>
               <span className="font-semibold text-main">{formData.state}</span>
             </div>
           </div>
           <p className="text-xs font-medium flex items-center space-x-2 text-accent-strong">
             <span className="accent-dot w-1.5 h-1.5 rounded-full animate-pulse" />
-            <span>The scheme result panel on the right updates in real time.</span>
+            <span>Your result updates as you type.</span>
           </p>
         </div>
       )}
@@ -174,7 +174,7 @@ export function CalculatorFormStep({
               : "bg-surface-subtle text-main hover:bg-surface-hover hover:text-main border border-border-default shadow-sm"
           }`}
         >
-          ← Previous Step
+          ← Back
         </button>
 
         {step < 4 ? (
@@ -183,7 +183,7 @@ export function CalculatorFormStep({
             type="button" onClick={onNext}
             className="min-h-[44px] px-6 py-2.5 hover:opacity-90 transition-opacity text-white text-xs font-bold rounded-xl shadow-md bg-accent-strong text-white"
           >
-            Next Step →
+            Next →
           </button>
         ) : (
           <span
@@ -192,7 +192,7 @@ export function CalculatorFormStep({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>Calculation complete</span>
+            <span>All done</span>
           </span>
         )}
       </div>

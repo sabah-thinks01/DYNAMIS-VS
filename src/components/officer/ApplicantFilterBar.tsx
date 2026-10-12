@@ -14,14 +14,14 @@ interface Props {
 
 export function ApplicantFilterBar({ filters, onFilterChange }: Props) {
   const statuses: { label: string; value: FilterState["status"] }[] = [
-    { label: "All Status", value: "all" },
+    { label: "All statuses", value: "all" },
     { label: "Pending", value: "pending" },
     { label: "Needs Review", value: "needs_review" },
     { label: "Approved", value: "approved" },
   ];
 
   const risks: { label: string; value: FilterState["risk"] }[] = [
-    { label: "All Risks", value: "all" },
+    { label: "All risk levels", value: "all" },
     { label: "Low", value: "low" },
     { label: "Medium", value: "medium" },
     { label: "High", value: "high" },
@@ -38,7 +38,7 @@ export function ApplicantFilterBar({ filters, onFilterChange }: Props) {
         </div>
         <input
           type="text"
-          placeholder="Search applicant or business name..."
+          placeholder="Search by name or business…"
           value={filters.searchQuery}
           onChange={(e) => onFilterChange({ ...filters, searchQuery: e.target.value })}
           className="w-full min-h-[44px] pl-10 pr-4 py-2 bg-surface border border-border-default/80 rounded-xl text-sm text-main placeholder-muted focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-accent-strong focus:outline-none transition-colors"

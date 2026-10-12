@@ -33,7 +33,7 @@ const FEATURES = [
     ),
   },
   {
-    label: "Understand competition",
+    label: "See who else sells nearby",
     svg: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 shrink-0">
         <path d="M3 3v18h18" /><path d="m18 9-5 5-4-4-3 3" />
@@ -41,7 +41,7 @@ const FEATURES = [
     ),
   },
   {
-    label: "Plan your finances",
+    label: "Plan your loan",
     svg: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 shrink-0">
         <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
@@ -87,7 +87,7 @@ function BrandPanel() {
           Know your market.<br />Plan your funding.
         </h1>
         <p className="text-base md:text-lg text-white/80 leading-relaxed mb-12 max-w-[28ch]">
-          Business guidance and government scheme support for rural entrepreneurs.
+          Check your business idea and find the right government loan.
         </p>
 
         <ul className="space-y-6">
@@ -216,7 +216,7 @@ function SignInCard({ onSuccess }: SignInCardProps) {
     e.preventDefault();
     const code = otp.join("");
     if (code.length < 6) {
-      setOtpError("Enter the 6-digit OTP");
+      setOtpError("Enter the 6-digit code");
       return;
     }
     setOtpError("");
@@ -231,7 +231,7 @@ function SignInCard({ onSuccess }: SignInCardProps) {
   }
 
   const ROLES: { value: Role; label: string }[] = [
-    { value: "entrepreneur", label: "Entrepreneur" },
+    { value: "entrepreneur", label: "Business owner" },
     { value: "officer", label: "SCA Officer" },
   ];
 
@@ -239,8 +239,8 @@ function SignInCard({ onSuccess }: SignInCardProps) {
     <div className="app-card w-full max-w-lg mx-auto px-8 py-10 md:px-10 md:py-12 relative z-10">
       {/* Card header */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-main">Sign in</h2>
-        <p className="text-base text-muted mt-1.5">Continue to your account</p>
+        <h2 className="text-2xl font-bold text-main">Log in</h2>
+        <p className="text-base text-muted mt-1.5">Use your mobile number</p>
       </div>
 
       {/* Role segmented control */}
@@ -308,14 +308,14 @@ function SignInCard({ onSuccess }: SignInCardProps) {
             type="submit"
             className="w-full min-h-[56px] px-6 py-3 bg-gradient-to-r from-emerald-900 to-emerald-500 hover:from-emerald-800 hover:to-emerald-400 text-white font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
-            Send OTP
+            Send code
             <ArrowRight className="w-5 h-5 ml-2" />
           </button>
         </form>
       ) : (
         <form onSubmit={handleVerify} noValidate>
           <p className="text-base text-muted mb-6">
-            Enter the 6-digit OTP sent to{" "}
+            Enter the 6-digit code we sent to{" "}
             <span className="font-semibold text-main">{maskMobile(mobile)}</span>
           </p>
 
@@ -333,7 +333,7 @@ function SignInCard({ onSuccess }: SignInCardProps) {
             type="submit"
             className="w-full min-h-[56px] px-6 py-3 bg-gradient-to-r from-emerald-900 to-emerald-500 hover:from-emerald-800 hover:to-emerald-400 text-white font-bold text-base rounded-xl mt-6 transition-all shadow-md flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
-            Verify &amp; continue
+            Continue
             <ArrowRight className="w-5 h-5 ml-2" />
           </button>
 
@@ -343,7 +343,7 @@ function SignInCard({ onSuccess }: SignInCardProps) {
               onClick={() => setOtp(Array(6).fill(""))}
               className="text-sm font-medium text-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent rounded"
             >
-              Resend OTP
+              Send code again
             </button>
             <span className="text-border-strong select-none" aria-hidden="true">·</span>
             <button
@@ -356,7 +356,7 @@ function SignInCard({ onSuccess }: SignInCardProps) {
           </div>
 
           <p className="text-center text-sm text-muted mt-6">
-            Demo mode: any 6-digit OTP works
+            Demo: any 6 digits will work
           </p>
         </form>
       )}

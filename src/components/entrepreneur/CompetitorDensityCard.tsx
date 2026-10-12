@@ -53,13 +53,16 @@ export function CompetitorDensityCard({ density }: Props) {
       {isSample && (
         <SampleDataTag variant="sample" className="absolute top-4 right-4" />
       )}
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted border-b border-border-default/60 pb-3 mb-5">
-        Competitor Density Analysis
-      </h3>
+      <div className="border-b border-border-default/60 pb-3 mb-5">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+          Similar sellers nearby
+        </h3>
+        <p className="text-[10px] text-muted">Competitor density</p>
+      </div>
       <div className={`grid grid-cols-1 ${isSample ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-4`}>
         <div className="bg-surface-subtle/50 rounded-xl p-4 border border-border-default flex flex-col justify-between">
           <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-            Active Competitors
+            Sellers found on the map
           </span>
           <p className="text-3xl font-semibold text-main mt-2">{activeDensity.count}</p>
           <p className="text-xs text-muted mt-2">{radiusSublabel}</p>
@@ -68,19 +71,19 @@ export function CompetitorDensityCard({ density }: Props) {
         {isSample && (
           <div className={`rounded-xl p-4 border ${statusColors[level] || statusColors.Medium} flex flex-col justify-between`}>
             <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
-              Market Saturation
+              How crowded
             </span>
             <p className="text-3xl font-semibold mt-2">{level}</p>
-            <p className="text-xs opacity-75 mt-2">Density Level</p>
+            <p className="text-xs opacity-75 mt-2">Market saturation</p>
           </div>
         )}
 
         <div className="bg-surface-subtle/50 rounded-xl p-4 border border-border-default flex flex-col justify-between">
           <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-            Average Distance
+            Nearest seller
           </span>
           <p className="text-3xl font-semibold text-main mt-2">{activeDensity.avgDistanceKm} km</p>
-          <p className="text-xs text-muted mt-2">To nearest similar business</p>
+          <p className="text-xs text-muted mt-2">Distance to the closest one</p>
         </div>
       </div>
     </div>

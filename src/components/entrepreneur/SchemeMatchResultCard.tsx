@@ -18,9 +18,9 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-bold text-main">Awaiting Information</p>
+          <p className="text-sm font-bold text-main">Fill in your details</p>
           <p className="text-xs text-muted mt-1 max-w-xs mx-auto">
-            Complete the calculator form to determine your eligibility and view the estimated scheme breakdown.
+            Answer the questions to see which loan fits and your monthly payment.
           </p>
         </div>
       </div>
@@ -39,16 +39,16 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
             </svg>
           </div>
           <div>
-            <span className="text-xs font-semibold text-[var(--status-error)] uppercase tracking-widest block mb-1">Not Eligible</span>
-            <h2 className="text-lg font-bold text-main leading-snug">Scheme Criteria Not Met</h2>
+            <span className="text-xs font-semibold text-[var(--status-error)] uppercase tracking-widest block mb-1">You can&apos;t apply yet</span>
+            <h2 className="text-lg font-bold text-main leading-snug">This loan doesn&apos;t fit yet</h2>
           </div>
         </div>
         <div className="bg-[var(--status-error-bg)] border border-[var(--status-error-border)] rounded-xl p-4 text-xs text-main leading-relaxed shadow-inner">
-          <span className="font-bold text-[var(--status-error)] block mb-1">Reason:</span>
+          <span className="font-bold text-[var(--status-error)] block mb-1">Why:</span>
           {result.ineligibilityReason}
         </div>
         <p className="text-xs text-muted mt-5">
-          Adjust the project cost or income details and the result will update automatically.
+          Change the amounts above and the result will update.
         </p>
       </div>
     );
@@ -61,27 +61,27 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
         <div>
           {/* "Matched Scheme Result" label uses neutral text */}
           <span className="text-xs font-semibold uppercase tracking-wider block mb-1 text-muted">
-            Matched Scheme Result
+            Loan that fits
           </span>
           <h2 className="text-xl font-extrabold text-main">{result.schemeName}</h2>
         </div>
         {/* Interest rate badge — neutral outline */}
         <span className="text-xs font-semibold px-3 py-1 rounded-full border border-border-strong text-main bg-surface-subtle">
-          Est. {result.interestRatePercent}% p.a.
+          About {result.interestRatePercent}% interest a year
         </span>
       </div>
 
       {/* 2-Way NBCFDC Capital Split */}
       <div className="mb-6">
         <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-          Capital Split Structure (2-Way)
+          Who pays what
         </h3>
         {/* Split bar: amber for margin (semantic warning — stays fixed), accent for loan */}
         <div className="w-full h-3 bg-surface rounded-full overflow-hidden flex mb-3 shadow-inner">
           <div
             style={{ width: `${MARGIN_MONEY_PERCENT}%`, backgroundColor: "var(--status-warning)" }}
             className="h-full"
-            title={`Entrepreneur Margin (${MARGIN_MONEY_PERCENT}%)`}
+            title={`Money you put in (${MARGIN_MONEY_PERCENT}%)`}
           />
           <div
             style={{
@@ -89,7 +89,7 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
               backgroundColor: "var(--accent-strong)",
             }}
             className="h-full"
-            title={`SCA / Bank Loan (${BANK_LOAN_PERCENT}%)`}
+            title={`Loan amount (${BANK_LOAN_PERCENT}%)`}
           />
         </div>
 
@@ -97,7 +97,7 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
           {/* Margin column — amber (semantic, stays fixed) */}
           <div className="bg-surface/60 p-4 rounded-xl border border-border-default">
             <span className="text-muted block mb-1.5">
-              Entrepreneur Margin ({MARGIN_MONEY_PERCENT}%)
+              Money you put in ({MARGIN_MONEY_PERCENT}%)
             </span>
             <span className="text-lg font-extrabold text-[var(--status-warning)]">
               ₹{result.marginMoney!.toLocaleString("en-IN")}
@@ -106,7 +106,7 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
           {/* Loan column — neutral stat */}
           <div className="bg-surface/60 p-4 rounded-xl border border-border-default">
             <span className="text-muted block mb-1.5">
-              SCA Term Loan ({BANK_LOAN_PERCENT}%)
+              Loan amount ({BANK_LOAN_PERCENT}%)
             </span>
             <span className="text-lg font-extrabold text-main">
               ₹{result.loanAmount!.toLocaleString("en-IN")}
@@ -118,31 +118,31 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
       {/* EMI & Repayment Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-border-default/60 pt-5">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Indicative Rate</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Interest per year</span>
           <span className="text-base font-bold text-main">{result.interestRatePercent}%</span>
         </div>
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Est. Monthly EMI</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Monthly payment</span>
           <span className="text-base font-bold text-main">
             ₹{result.monthlyEMI!.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </span>
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Tenure</span>
-          <span className="text-base font-bold text-main">{result.tenureMonths} mo</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted block mb-1">Pay back over</span>
+          <span className="text-base font-bold text-main">{result.tenureMonths} months</span>
         </div>
       </div>
 
       {/* Total Repayment Breakdown */}
       <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border-default/60 pt-4 text-xs">
         <div className="bg-surface/40 p-3 rounded-xl border border-border-default">
-          <span className="text-muted block mb-1">Total Interest Payable</span>
+          <span className="text-muted block mb-1">Total extra you pay</span>
           <span className="font-bold text-main text-sm">
             ₹{result.totalInterestPayable!.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </span>
         </div>
         <div className="bg-surface/40 p-3 rounded-xl border border-border-default">
-          <span className="text-muted block mb-1">Total Repayment</span>
+          <span className="text-muted block mb-1">Total you pay back</span>
           <span className="font-bold text-main text-sm">
             ₹{result.totalRepayment!.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </span>
@@ -151,10 +151,10 @@ export function SchemeMatchResultCard({ result }: SchemeMatchResultCardProps) {
 
       {/* Footer — live status dot */}
       <div className="mt-4 pt-4 border-t border-border-default text-xs text-muted flex items-center justify-between">
-        <span>* Figures are indicative pending final confirmation.</span>
+        <span>These are estimates. The loan office gives the final numbers.</span>
         <span className="flex items-center gap-1.5 font-medium text-muted">
           <span className="accent-dot w-1.5 h-1.5 rounded-full animate-pulse" />
-          Module 2 Live
+          Estimate
         </span>
       </div>
     </div>

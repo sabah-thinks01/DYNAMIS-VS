@@ -9,7 +9,7 @@ export function ApplicantTable({ applicants }: Props) {
   if (applicants.length === 0) {
     return (
       <div className="p-8 text-center text-muted text-sm">
-        No applications match the current filters.
+        No applications match these filters.
       </div>
     );
   }
@@ -46,7 +46,7 @@ export function ApplicantTable({ applicants }: Props) {
           </span>
         );
       case "medium":
-        return <span className="text-[var(--status-warning)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-warning)]" />Medium</span>;
+        return <span className="text-[var(--status-warning)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-warning)]" />Medium Risk</span>;
       case "high":
         return <span className="text-[var(--status-error)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-error)]" />High Risk</span>;
     }
@@ -58,9 +58,9 @@ export function ApplicantTable({ applicants }: Props) {
         <thead>
           <tr className="bg-surface/60 border-b border-border-default text-xs uppercase tracking-widest text-muted">
             <th className="p-4 font-semibold">Applicant / Business</th>
-            <th className="p-4 font-semibold">Requested Loan</th>
-            <th className="p-4 font-semibold">Viability Score</th>
-            <th className="p-4 font-semibold">Risk Level</th>
+            <th className="p-4 font-semibold">Loan asked for</th>
+            <th className="p-4 font-semibold">Chance of success</th>
+            <th className="p-4 font-semibold">Risk</th>
             <th className="p-4 font-semibold">Status</th>
             <th className="p-4 font-semibold text-right">Action</th>
           </tr>
@@ -97,7 +97,7 @@ export function ApplicantTable({ applicants }: Props) {
               </td>
               <td className="p-4 text-right">
                 <button className="min-h-[44px] px-4 py-2 bg-surface-subtle hover:bg-surface-hover text-main text-xs font-bold rounded-xl border border-border-default transition-colors whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
-                  Review Details
+                  Review
                 </button>
               </td>
             </tr>

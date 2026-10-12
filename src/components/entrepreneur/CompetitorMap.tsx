@@ -402,8 +402,8 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       
       const centerPopupHTML = `
         <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default); box-shadow: 0 4px 12px rgba(0,0,0,0.25); font-family: sans-serif;">
-          <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Proposed Location</div>
-          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Your planned business site</div>
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Your business spot</div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Where you plan to start</div>
         </div>
       `;
       
@@ -470,7 +470,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
             pin: comp.eLoc,
             popupHtml: `<div style="padding: 10px 12px; font-family: sans-serif; background: var(--bg-surface); border-radius: 8px;">
                           <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.placeName}</div>
-                          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.type || 'Business'} (${comp.tier} match)</div>
+                          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.tier === 'exact' ? 'Same kind of business' : 'Similar business'}</div>
                           <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${(comp.distance / 1000).toFixed(1)} km away</div>
                         </div>`
           });
@@ -513,7 +513,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       } else {
         setShowPickList(false);
         if (data.errorType === 'no_results') {
-          alert("Location not found. Please try a different search term.");
+          alert("We couldn't find that place. Try the village or town name.");
         } else if (data.errorType === 'rate_limited') {
           alert("Too many searches right now. Please wait a few seconds and try again.");
         } else {
@@ -607,7 +607,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
     return (
       <div className="w-full h-80 rounded-2xl border border-border-default bg-surface-subtle flex items-center justify-center">
         <span className="text-sm text-muted font-medium px-4 text-center">
-          Map configuration missing. Please provide a valid Mappls API Key.
+          The map isn&apos;t set up right now. Please try again later.
         </span>
       </div>
     );
@@ -616,17 +616,17 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
   // Derive status text
   let statusMessage = "";
   if (realDataState === 'loading') {
-    statusMessage = "Loading nearby businesses...";
+    statusMessage = "Looking for sellers nearby…";
   } else if (realDataState === 'success') {
     if (radiusKm > NEARBY_MAX_RADIUS_KM) {
-      statusMessage = "Showing businesses from Mappls (up to 10 km)";
+      statusMessage = "Showing sellers listed on Mappls (within 10 km)";
     } else {
-      statusMessage = "Showing businesses from Mappls";
+      statusMessage = "Showing sellers listed on Mappls";
     }
   } else if (realDataState === 'empty') {
-    statusMessage = "No businesses found by Mappls for this search. Showing sample data.";
+    statusMessage = "No sellers found on the map here. Showing sample sellers instead.";
   } else if (realDataState === 'error' || (!isPluginLoaded && isScriptLoaded)) {
-    statusMessage = "Could not load nearby businesses. Showing sample data.";
+    statusMessage = "Couldn't load sellers right now. Showing sample sellers instead.";
   }
 
   return (
@@ -635,7 +635,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       <div className="app-card w-full p-4 sm:p-5 rounded-2xl border border-border-default shadow-card relative z-10 bg-surface">
         <div className="flex flex-col sm:flex-row gap-5 items-end">
           <div className="w-full sm:flex-1 space-y-2 relative">
-            <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Search Location</label>
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Find a place</label>
             <form onSubmit={handleSearch} className="flex gap-2">
               <div className="relative flex-1">
                 <input 
@@ -643,7 +643,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
                   value={searchQuery}
                   onChange={e => { setSearchQuery(e.target.value); setShowPickList(false); }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search district, city..."
+                  placeholder="Village, town or district"
                   role="combobox"
                   aria-autocomplete="list"
                   aria-expanded={showPickList && searchResults.length > 0}
@@ -693,7 +693,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
           
           <div className="w-full sm:flex-1 space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider">Search Radius</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider">How far to look</label>
               <span className="text-xs font-semibold text-main">{radiusKm} km</span>
             </div>
             <div className="flex items-center min-h-[44px]">
@@ -710,7 +710,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
 
         <div className="w-full mt-4 pt-4 border-t border-border-default space-y-2.5">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Business Categories</label>
+            <label className="text-xs font-semibold text-muted uppercase tracking-wider block">Type of business</label>
             {statusMessage && (
               <span className="text-xs font-medium text-main">{statusMessage}</span>
             )}
@@ -743,11 +743,11 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
                 onClick={() => setCategories([])}
                 className="min-h-[44px] px-4 py-2.5 rounded-full text-xs font-medium bg-transparent border border-transparent text-[var(--status-error)] hover:bg-[var(--status-error-bg)] transition-colors inline-flex items-center justify-center ml-auto sm:ml-0"
               >
-                Clear Filters
+                Show all
               </button>
             )}
             {uniqueCategories.length === 0 && (
-              <span className="text-xs text-muted italic">No categories available to filter.</span>
+              <span className="text-xs text-muted italic">No business types to choose from.</span>
             )}
           </div>
         </div>
@@ -758,7 +758,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
         {!isMapReady && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/90 backdrop-blur-sm animate-pulse">
             <div className="w-8 h-8 border-4 border-accent/30 border-t-accent-strong rounded-full animate-spin mb-3"></div>
-            <span className="text-xs font-medium text-main">Initializing Mappls Framework...</span>
+            <span className="text-xs font-medium text-main">Loading map…</span>
           </div>
         )}
         

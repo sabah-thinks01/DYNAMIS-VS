@@ -8,10 +8,10 @@ interface Props {
 
 export function SWOTSection({ swot }: Props) {
   const quadrants = [
-    { title: "Strengths", items: swot.strengths, color: "emerald" },
-    { title: "Weaknesses", items: swot.weaknesses, color: "amber" },
-    { title: "Opportunities", items: swot.opportunities, color: "teal" },
-    { title: "Threats", items: swot.threats, color: "rose" },
+    { title: "Your strengths", items: swot.strengths, color: "emerald" },
+    { title: "Your weak points", items: swot.weaknesses, color: "amber" },
+    { title: "Chances to grow", items: swot.opportunities, color: "teal" },
+    { title: "Risks from outside", items: swot.threats, color: "rose" },
   ];
 
   return (
@@ -19,7 +19,7 @@ export function SWOTSection({ swot }: Props) {
       <div className="border-b border-border-default/60 pb-3 mb-5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-            SWOT Analysis
+            Helps and risks
           </h3>
           <SampleDataTag variant="sample" />
         </div>

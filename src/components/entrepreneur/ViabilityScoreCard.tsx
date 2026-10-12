@@ -58,6 +58,13 @@ export function ViabilityScoreCard({ businessName, location, viabilityScore }: P
       ? "var(--status-warning-glow)"
       : "var(--status-error-glow)";
 
+  // Category display label lookup
+  const categoryLabels = {
+    High: "Good chance",
+    Medium: "Possible",
+    Low: "Risky",
+  };
+
   return (
     <div 
       className="app-card rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-border-default shadow-card"
@@ -82,9 +89,9 @@ export function ViabilityScoreCard({ businessName, location, viabilityScore }: P
       <div className={`flex items-center space-x-4 border ${scoreColor} rounded-2xl px-5 py-3.5 shrink-0 self-start sm:self-auto`}>
         <div className="flex flex-col text-right">
           <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">
-            Viability Score
+            Chance of success
           </span>
-          <span className="text-xs font-semibold mt-0.5">{category} Potential</span>
+          <span className="text-xs font-semibold mt-0.5">{categoryLabels[category]}</span>
         </div>
         <div className="text-3xl font-extrabold border-l border-current/20 pl-4">
           {viabilityScore}/100

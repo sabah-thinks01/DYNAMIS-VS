@@ -153,7 +153,7 @@ export function Navbar({ currentRole, isOpen, onClose }: SidebarProps) {
           <div className="space-y-1 pr-3">
             <div className="px-4 mb-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
-                Module 1 — Feasibility
+                Module 1 — Feasibility / Check your idea
               </p>
             </div>
             {MODULE1_LINKS.map(({ href, label, icon }) =>
@@ -164,7 +164,7 @@ export function Navbar({ currentRole, isOpen, onClose }: SidebarProps) {
           <div className="space-y-1 pr-3">
             <div className="px-4 mb-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
-                Module 2
+                Module 2 — Finance / Plan your loan
               </p>
             </div>
             {MODULE2_LINKS.map(({ href, label, icon }) =>
@@ -176,7 +176,7 @@ export function Navbar({ currentRole, isOpen, onClose }: SidebarProps) {
             <div className="space-y-1 border-t border-border-default pt-4 pr-3">
               <div className="px-4 mb-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
-                  Government
+                  Government / Officer tools
                 </p>
               </div>
               {OFFICER_LINKS.map(({ href, label, icon }) =>
@@ -189,7 +189,7 @@ export function Navbar({ currentRole, isOpen, onClose }: SidebarProps) {
         <div className="shrink-0 px-4 py-4 border-t border-border-default bg-surface">
           <div className="flex items-center gap-2 text-[10px] text-muted font-medium">
             <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-status-good" />
-            Platform online — Mock data
+            Prototype · some sample data
           </div>
           <p className="text-[10px] text-muted/70 mt-1">v0.1.0-dev</p>
         </div>

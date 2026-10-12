@@ -28,7 +28,7 @@ const CompetitorMap = dynamic(
       <div className="w-full h-96 sm:h-[420px] rounded-2xl border border-border-default shadow-card bg-surface flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-accent/30 border-t-accent-strong rounded-full animate-spin mb-3"></div>
-          <span className="text-xs font-medium text-main">Loading map...</span>
+          <span className="text-xs font-medium text-main">Loading map…</span>
         </div>
       </div>
     ),
