@@ -61,6 +61,34 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isPluginLoaded, setIsPluginLoaded] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // Dynamic theme detection & observation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateTheme = () => {
+      const themeAttr = document.documentElement.getAttribute("data-theme");
+      setIsDark(themeAttr === "dark");
+    };
+
+    updateTheme();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "data-theme") {
+          updateTheme();
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
   
   // Real Data States
   const [realDataState, setRealDataState] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>('idle');
@@ -369,11 +397,11 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
         position: { lng: activeCenter[1], lat: activeCenter[0] },
         width: 18,
         height: 18,
-        html: `<div style="background-color: var(--status-good, #10b981); width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 8px var(--status-good-glow, rgba(16, 185, 129, 0.8));"></div>`,
+        html: `<div style="background-color: var(--status-good, #10b981); width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--bg-surface); box-shadow: 0 0 8px var(--status-good-glow, rgba(16, 185, 129, 0.8));"></div>`,
       });
       
       const centerPopupHTML = `
-        <div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
+        <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default); box-shadow: 0 4px 12px rgba(0,0,0,0.25); font-family: sans-serif;">
           <div style="font-size: 12px; font-weight: 600; color: var(--text-main);">Proposed Location</div>
           <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Your planned business site</div>
         </div>
@@ -412,7 +440,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
         });
 
         const compPopupHTML = `
-          <div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
+          <div style="padding: 10px 12px; font-family: sans-serif; background: var(--bg-surface); border-radius: 8px;">
             <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.name}</div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.typeMatch}</div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${comp.distanceKm} km away</div>
@@ -440,7 +468,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
           const pinObj = window.mappls.pinMarker({
             map: map,
             pin: comp.eLoc,
-            popupHtml: `<div style="padding: 10px 12px; font-family: sans-serif; background: var(--surface); border-radius: 8px;">
+            popupHtml: `<div style="padding: 10px 12px; font-family: sans-serif; background: var(--bg-surface); border-radius: 8px;">
                           <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">${comp.placeName}</div>
                           <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500;">${comp.type || 'Business'} (${comp.tier} match)</div>
                           <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${(comp.distance / 1000).toFixed(1)} km away</div>
@@ -734,22 +762,22 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
           </div>
         )}
         
-        <div id={mapContainerId} className="w-full h-full mappls-dark-mode" />
+        <div id={mapContainerId} className={`w-full h-full dynamis-map ${isDark ? "mappls-dark-mode" : ""}`} />
         
         <style jsx global>{`
           .mappls-dark-mode canvas {
             filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
           }
           
-          .mappls-dark-mode .mapboxgl-popup-content, 
-          .mappls-dark-mode .mappls-popup-content {
+          .dynamis-map .mapboxgl-popup-content, 
+          .dynamis-map .mappls-popup-content {
             padding: 0;
             background: transparent;
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
           }
-          .mappls-dark-mode .mapboxgl-popup-tip,
-          .mappls-dark-mode .mappls-popup-tip {
+          .dynamis-map .mapboxgl-popup-tip,
+          .dynamis-map .mappls-popup-tip {
             display: none;
           }
         `}</style>
