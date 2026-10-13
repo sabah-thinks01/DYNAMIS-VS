@@ -3,9 +3,10 @@ import { Applicant } from "@/types";
 
 interface Props {
   applicants: Applicant[];
+  onSelectApplicant?: (applicant: Applicant, triggerEl: HTMLElement) => void;
 }
 
-export function ApplicantTable({ applicants }: Props) {
+export function ApplicantTable({ applicants, onSelectApplicant }: Props) {
   if (applicants.length === 0) {
     return (
       <div className="p-8 text-center text-muted text-sm">
@@ -96,7 +97,12 @@ export function ApplicantTable({ applicants }: Props) {
                 {statusBadge(app.status)}
               </td>
               <td className="p-4 text-right">
-                <button className="min-h-[44px] px-4 py-2 bg-surface-subtle hover:bg-surface-hover text-main text-xs font-bold rounded-xl border border-border-default transition-colors whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+                <button
+                  type="button"
+                  onClick={(e) => onSelectApplicant?.(app, e.currentTarget)}
+                  aria-label={`Review details for ${app.name}`}
+                  className="min-h-[44px] px-4 py-2 bg-surface-subtle hover:bg-surface-hover text-main text-xs font-bold rounded-xl border border-border-default transition-colors whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                >
                   Review
                 </button>
               </td>

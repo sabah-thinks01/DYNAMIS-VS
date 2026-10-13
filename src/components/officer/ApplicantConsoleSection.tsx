@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { mockApplicants } from "@/lib/mockData/mockApplicants";
 import { ApplicantFilterBar, FilterState } from "@/components/officer/ApplicantFilterBar";
 import { ApplicantTable } from "@/components/officer/ApplicantTable";
+import { ApplicationDetailsPanel } from "@/components/officer/ApplicationDetailsPanel";
 import { SampleDataTag } from "@/components/shared/SampleDataTag";
+import type { Applicant } from "@/types";
 
 export function ApplicantConsoleSection() {
   const [filters, setFilters] = useState<FilterState>({
@@ -12,6 +14,18 @@ export function ApplicantConsoleSection() {
     status: "all",
     risk: "all",
   });
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
+  const lastTriggerRef = useRef<HTMLElement | null>(null);
+
+  function handleSelectApplicant(app: Applicant, triggerEl: HTMLElement) {
+    lastTriggerRef.current = triggerEl;
+    setSelectedApplicant(app);
+  }
+
+  function handleClosePanel() {
+    setSelectedApplicant(null);
+    lastTriggerRef.current?.focus();
+  }
 
   // Client-side filtering logic
   const filteredApplicants = mockApplicants.filter((app) => {
@@ -37,7 +51,10 @@ export function ApplicantConsoleSection() {
       </div>
 
       <div className="p-0 border-t border-border-default">
-        <ApplicantTable applicants={filteredApplicants} />
+        <ApplicantTable
+          applicants={filteredApplicants}
+          onSelectApplicant={handleSelectApplicant}
+        />
       </div>
 
       {/* Simple pagination/footer area */}
@@ -48,6 +65,14 @@ export function ApplicantConsoleSection() {
           <button className="min-h-[44px] px-4 py-2 rounded-xl bg-surface hover:bg-surface-hover border border-border-default text-main transition-colors flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Next</button>
         </div>
       </div>
+
+      {/* Review Details Panel */}
+      {selectedApplicant && (
+        <ApplicationDetailsPanel
+          applicant={selectedApplicant}
+          onClose={handleClosePanel}
+        />
+      )}
     </div>
   );
 }

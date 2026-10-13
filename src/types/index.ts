@@ -1,3 +1,5 @@
+import type { EligibilityAnswers } from "@/lib/eligibility/types";
+
 export interface MarketReachData {
   estimatedReachRadiusKm: number;
   populationInReach: number;
@@ -77,6 +79,8 @@ export interface Applicant {
   riskLevel: RiskLevel;
   submittedDate: string;
   projectCost: number;
+  pincode?: string;
+  eligibilityAnswers?: EligibilityAnswers;
 }
 
 export interface OfficerStats {
