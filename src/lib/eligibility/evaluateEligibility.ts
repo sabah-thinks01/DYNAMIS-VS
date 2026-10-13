@@ -60,7 +60,7 @@ const LOAN_RANGE_BANDS: Record<
   above15L: { min: 1_500_000, max: Infinity },
 };
 
-function formatLakhAmount(n: number): string {
+export function formatLakhAmount(n: number): string {
   if (!isFinite(n)) return "₹0";
   if (Math.abs(n) >= 100_000) {
     const inLakhs = n / 100_000;

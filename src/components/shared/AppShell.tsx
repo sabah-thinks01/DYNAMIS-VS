@@ -11,6 +11,7 @@ import { getSession, setSession } from "@/lib/session";
 import { useProfile } from "@/lib/profile/useProfile";
 import { getProfile } from "@/lib/profile/profileStore";
 import { RoleContext } from "@/lib/role/RoleContext";
+import { HelpChat } from "@/components/shared/HelpChat";
 
 export type Role = "entrepreneur" | "officer";
 
@@ -189,6 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      <HelpChat />
     </RoleContext.Provider>
   );
 }
