@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/session";
-import type { UserProfile, QuickStartData, EnteredBy, BusinessType, BusinessStage, LoanRange } from "./types";
+import type { UserProfile, QuickStartData, EnteredBy, BusinessType, BusinessStage, LoanRange, EligibilityInput } from "./types";
+import { mergeEligibility } from "./mergeEligibility";
 
 export const SAMPLE_PINCODE = "413102";
 
@@ -90,6 +91,35 @@ export function saveQuickStart(
     version: 1,
     quickStart,
   };
+
+  // Persist to memory
+  memoryProfiles.set(key, updatedProfile);
+
+  // Persist to localStorage
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(key, JSON.stringify(updatedProfile));
+    } catch (e) {
+      console.warn("Could not save profile to localStorage:", e);
+    }
+  }
+
+  // Notify listeners synchronously before returning
+  notifyListeners(updatedProfile);
+
+  return updatedProfile;
+}
+
+export function saveEligibility(
+  data: EligibilityInput,
+  enteredBy: EnteredBy,
+  explicitMobile?: string
+): UserProfile | null {
+  const key = getStorageKey(explicitMobile);
+  if (!key) return null;
+
+  const current = getProfile(explicitMobile);
+  const updatedProfile = mergeEligibility(current, data, enteredBy, new Date().toISOString());
 
   // Persist to memory
   memoryProfiles.set(key, updatedProfile);

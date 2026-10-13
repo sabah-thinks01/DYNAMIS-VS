@@ -1,3 +1,5 @@
+import type { Gender, BackwardClassAnswer, IncomeBand, YesNo, ApplyMode } from "@/lib/eligibility/types";
+
 export type EnteredBy = "entrepreneur" | "officer" | "sample";
 
 export interface Answer<T> {
@@ -33,7 +35,24 @@ export interface QuickStartData {
   completedAt: string; // ISO 8601 string
 }
 
+export interface EligibilityData {
+  applicantGender?: Answer<Gender>;
+  backwardClass?: Answer<BackwardClassAnswer>;
+  incomeBand?: Answer<IncomeBand>;
+  disability40?: Answer<YesNo>;
+  applyMode?: Answer<ApplyMode>;
+}
+
+export interface EligibilityInput {
+  applicantGender?: Gender;
+  backwardClass?: BackwardClassAnswer;
+  incomeBand?: IncomeBand;
+  disability40?: YesNo;
+  applyMode?: ApplyMode;
+}
+
 export interface UserProfile {
   version: 1;
   quickStart?: QuickStartData;
+  eligibility?: EligibilityData;
 }
