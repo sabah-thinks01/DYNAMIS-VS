@@ -21,7 +21,7 @@ const MODULE1_LINKS = [
 ];
 
 const MODULE2_LINKS = [
-  { href: "/module2/calculator", label: "Financial Calculator", icon: Calculator },
+  { href: "/module2/scheme-match", label: "Scheme Match", icon: Calculator },
 ];
 
 const OFFICER_LINKS = [
