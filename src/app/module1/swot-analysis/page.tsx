@@ -1,11 +1,12 @@
 import { mockFeasibilityReport } from "@/lib/mockData/mockFeasibilityReport";
 import { SWOTSection } from "@/components/entrepreneur/SWOTSection";
 import { GuideNote } from "@/components/shared/GuideNote";
+import { SwotSwitch } from "@/components/entrepreneur/SwotPanel";
 
 export default function SWOTAnalysisPage() {
   const report = mockFeasibilityReport;
 
-  return (
+  const sampleMarkup = (
     <div className="space-y-6">
       <div className="pb-6 border-b border-border-default">
         <h1 className="page-title">
@@ -22,4 +23,6 @@ export default function SWOTAnalysisPage() {
       <GuideNote />
     </div>
   );
+
+  return <SwotSwitch sampleView={sampleMarkup} />;
 }
