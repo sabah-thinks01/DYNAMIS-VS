@@ -230,7 +230,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
     if (!isPluginLoaded) {
       setRealDataState('error');
       setRealNearbyData([]);
-      window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+      window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { error: true, isSampleData: true } }));
       return;
     }
 
@@ -239,6 +239,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
 
     let active = true;
     setRealDataState('loading');
+    window.dispatchEvent(new CustomEvent('nearby-data-update', {
+      detail: {
+        loading: true,
+        isSampleData: true,
+        centerLat: activeCenter[0],
+        centerLng: activeCenter[1],
+      }
+    }));
 
     const timeout = setTimeout(async () => {
       const defaultKeywords = [
@@ -302,7 +310,22 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
         if (finalResults.length === 0) {
           setRealDataState(hasError ? 'error' : 'empty');
           setRealNearbyData([]);
-          window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+          if (hasError) {
+            window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { error: true, isSampleData: true } }));
+          } else {
+            window.dispatchEvent(new CustomEvent('nearby-data-update', {
+              detail: {
+                count: 0,
+                level: "Low",
+                avgDistanceKm: "None found nearby",
+                effectiveRadiusKm,
+                sliderRadiusKm: radiusKm,
+                isSampleData: false,
+                centerLat: activeCenter[0],
+                centerLng: activeCenter[1],
+              }
+            }));
+          }
         } else {
           setRealDataState('success');
           finalResults.sort((a, b) => a.distance - b.distance);
@@ -343,7 +366,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
         if (active) {
           setRealDataState('error');
           setRealNearbyData([]);
-          window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { isSampleData: true } }));
+          window.dispatchEvent(new CustomEvent('nearby-data-update', { detail: { error: true, isSampleData: true } }));
         }
       }
     }, 500);
