@@ -176,6 +176,7 @@ export function SchemeMatchPanel() {
         </div>
 
         <div className="space-y-1 text-xs text-muted">
+          <p>These schemes are the same for women and men. Some states have extra schemes for women.</p>
           <p>This only changes what you see here. Your saved answers stay the same.</p>
           {view === "real" && (
             <p>

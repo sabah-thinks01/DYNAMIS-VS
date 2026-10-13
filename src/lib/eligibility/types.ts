@@ -63,6 +63,12 @@ export interface SchemeResult {
     status: "confirmed" | "toConfirm";
     text: string;
   }; // only when eligible
+  repayment?: {
+    years: number;
+    moratoriumMonths: number;
+    text: string;
+  }; // only when eligible
+  rebateNote?: string; // only when eligible
   sourceUrl: string;
   lastVerified: string;
 }
@@ -77,6 +83,13 @@ export interface RateSlab {
   upTo: number | null;
   percent: number;
   status: "confirmed" | "toConfirm";
+  repaymentYears: number;
+}
+
+export interface DisabilityConcession {
+  percent: number;
+  status: "confirmed" | "toConfirm";
+  note: string;
 }
 
 export interface SchemeRule {
@@ -95,7 +108,9 @@ export interface SchemeRule {
   baseRate: {
     slabs: RateSlab[];
   };
-  disabilityConcessionPercent: number;
+  moratoriumMonths: number;
+  rebateNote: string;
+  disabilityConcession: DisabilityConcession;
   extraNote?: string;
   sourceUrl: string;
   lastVerified: string;

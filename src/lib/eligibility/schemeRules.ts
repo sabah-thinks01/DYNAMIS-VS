@@ -3,11 +3,9 @@
 // ============================================================================
 // Every number here is a policy fact; change it in this file only.
 // Each rule carries a sourceUrl and lastVerified date.
-//
-// NOTE: The legacy General Loan (₹3,00,000 income limit / ₹15,00,000 cap)
-// is legacy and NOT used for matching, pending confirmation from an SCA
-// officer or NBCFDC.
-// Source: https://nbcfdc.gov.in/nbcfdc/web/general-loan
+// Sources:
+// - https://nbcfdc.gov.in/nbcfdc/web/en/individual-loan-scheme
+// - https://nbcfdc.gov.in/nbcfdc/web/en/loans-pattern-of-finance
 // ============================================================================
 
 import { SchemeRule } from "./types";
@@ -28,39 +26,24 @@ export const SCHEME_RULES: SchemeRule[] = [
     },
     baseRate: {
       slabs: [
-        { upTo: 500_000, percent: 6, status: "confirmed" },
-        { upTo: null, percent: 0, status: "toConfirm" },
+        { upTo: 125_000, percent: 7, status: "confirmed", repaymentYears: 4 },
+        { upTo: null, percent: 8, status: "confirmed", repaymentYears: 7 },
       ],
     },
-    disabilityConcessionPercent: 0.25,
-    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/individual-loan-scheme",
+    moratoriumMonths: 3,
+    rebateNote:
+      "1% yearly timely-payment rebate shared equally between channel partner and beneficiary (about 0.5% to you).",
+    disabilityConcession: {
+      percent: 0.25,
+      status: "toConfirm",
+      note: "A 0.25% interest concession may be available for disability of 40% or more — ask your state agency to confirm.",
+    },
+    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/en/individual-loan-scheme",
     lastVerified: "2026-10-13",
   },
   {
-    id: "new-swarnima",
-    name: "New Swarnima Scheme (women)",
-    mode: "individual",
-    womenOnly: true,
-    incomeLimit: 300_000,
-    incomeLimitStatus: "confirmed",
-    maxLoan: 200_000,
-    split: {
-      nbcfdcPercent: null,
-      otherPercent: null,
-      text: "You do not need to put in your own money for a project up to ₹2 lakh.",
-    },
-    baseRate: {
-      slabs: [
-        { upTo: null, percent: 5, status: "confirmed" },
-      ],
-    },
-    disabilityConcessionPercent: 0.25,
-    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/en/loan-scheme-description",
-    lastVerified: "2026-10-13",
-  },
-  {
-    id: "micro-finance-shg",
-    name: "Micro Finance Scheme (self-help group)",
+    id: "group-loan",
+    name: "Group Loan Scheme",
     mode: "shg",
     womenOnly: false,
     incomeLimit: 300_000,
@@ -73,35 +56,20 @@ export const SCHEME_RULES: SchemeRule[] = [
     },
     baseRate: {
       slabs: [
-        { upTo: null, percent: 5, status: "confirmed" },
+        { upTo: null, percent: 7, status: "confirmed", repaymentYears: 3 },
       ],
     },
-    disabilityConcessionPercent: 0.25,
-    extraNote: "At least 60% of the group's members must be from backward classes.",
-    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/loan-flyer",
-    lastVerified: "2026-10-13",
-  },
-  {
-    id: "mahila-samriddhi",
-    name: "Mahila Samriddhi Yojana (women's self-help group)",
-    mode: "shg",
-    womenOnly: true,
-    incomeLimit: 300_000,
-    incomeLimitStatus: "toConfirm",
-    maxLoan: 125_000,
-    split: {
-      nbcfdcPercent: 95,
-      otherPercent: 5,
-      text: "NBCFDC gives 95%. The other 5% comes from your state agency or from you.",
+    moratoriumMonths: 3,
+    rebateNote:
+      "1% yearly timely-payment rebate shared equally between channel partner and beneficiary (about 0.5% to you).",
+    disabilityConcession: {
+      percent: 0.25,
+      status: "toConfirm",
+      note: "A 0.25% interest concession may be available for disability of 40% or more — ask your state agency to confirm.",
     },
-    baseRate: {
-      slabs: [
-        { upTo: null, percent: 4, status: "confirmed" },
-      ],
-    },
-    disabilityConcessionPercent: 0.25,
-    extraNote: "At least 60% of the group's members must be from backward classes.",
-    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/loan-flyer",
+    extraNote:
+      "Up to ₹1,25,000 per member (max ₹25,00,000 per group). 7% p.a. through state agencies and banks; up to 16% through micro-finance companies (NBFC-MFIs). At least 60% of group members must be from backward classes.",
+    sourceUrl: "https://nbcfdc.gov.in/nbcfdc/web/en/loans-pattern-of-finance",
     lastVerified: "2026-10-13",
   },
 ];

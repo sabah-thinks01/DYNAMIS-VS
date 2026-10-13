@@ -192,26 +192,19 @@ describe("profileAnswers", () => {
     expect(JSON.stringify(p)).toBe(snap);
   });
 
-  // P10: evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS): individual-loan eligible with rate.percent 6 and status "confirmed"; new-swarnima eligible; micro-finance-shg and mahila-samriddhi notEligible with a wrong_apply_mode reason; summary "someEligible".
+  // P10: evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS): individual-loan eligible with rate.percent 8 and status "confirmed"; group-loan notEligible with a wrong_apply_mode reason; summary "someEligible".
   it("P10: SAMPLE_ELIGIBILITY_ANSWERS evaluates deterministically", () => {
     const res = evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS);
     expect(res.summary).toBe("someEligible");
 
     const ind = res.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("eligible");
-    expect(ind.rate?.percent).toBe(6);
+    expect(ind.rate?.percent).toBe(8);
     expect(ind.rate?.status).toBe("confirmed");
 
-    const swarnima = res.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("eligible");
-
-    const micro = res.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    expect(micro.status).toBe("notEligible");
-    expect(micro.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
-
-    const mahila = res.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.status).toBe("notEligible");
-    expect(mahila.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
+    const group = res.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
+    expect(group.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
   });
 
   // P11: integration: take mergeEligibility(null, { applicantGender:"woman", backwardClass:"yes", incomeBand:"upTo3L", disability40:"no", applyMode:"alone" }, "entrepreneur", NOW), pass it through buildEligibilityAnswers, then evaluateEligibility → individual-loan status "eligible" with a note code "loan_amount_decides" (no loanRange stored).

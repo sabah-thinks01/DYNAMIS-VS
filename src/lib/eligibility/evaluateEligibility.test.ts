@@ -13,12 +13,12 @@ const BASE_A: EligibilityAnswers = {
 };
 
 describe("evaluateEligibility", () => {
-  // E1: {} → all 4 needsInfo; individual-loan missing = backwardClass, incomeBand, applyMode; new-swarnima also gender; no throw; summary needMoreInfo.
+  // E1: {} → all 2 needsInfo; individual-loan & group-loan missing = backwardClass, incomeBand, applyMode; no throw; summary needMoreInfo.
   it("E1: empty answers returns needsInfo for all schemes and summary needMoreInfo", () => {
     const result = evaluateEligibility({});
     expect(result.summary).toBe("needMoreInfo");
     expect(result.eligibleIds).toEqual([]);
-    expect(result.schemes).toHaveLength(4);
+    expect(result.schemes).toHaveLength(2);
 
     for (const scheme of result.schemes) {
       expect(scheme.status).toBe("needsInfo");
@@ -30,44 +30,43 @@ describe("evaluateEligibility", () => {
     expect(ind.missing).toContain("applyMode");
     expect(ind.missing).not.toContain("gender");
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.missing).toContain("gender");
-    expect(swarnima.missing).toContain("backwardClass");
-    expect(swarnima.missing).toContain("incomeBand");
-    expect(swarnima.missing).toContain("applyMode");
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.missing).toContain("backwardClass");
+    expect(group.missing).toContain("incomeBand");
+    expect(group.missing).toContain("applyMode");
+    expect(group.missing).not.toContain("gender");
   });
 
-  // E2: A → individual-loan eligible (rate 6, split 85/15), new-swarnima eligible (rate 5, no split numbers), micro-finance-shg + mahila-samriddhi notEligible (wrong_apply_mode).
-  it("E2: Base A returns individual-loan & new-swarnima eligible, SHGs notEligible", () => {
+  // E2: Base A → individual-loan eligible (rate 8, split 85/15, repayment 7y, rebateNote), group-loan notEligible (wrong_apply_mode).
+  it("E2: Base A returns individual-loan eligible with repayment and rebate, SHG notEligible", () => {
     const result = evaluateEligibility(BASE_A);
     expect(result.summary).toBe("someEligible");
-    expect(result.eligibleIds).toEqual(["individual-loan", "new-swarnima"]);
+    expect(result.eligibleIds).toEqual(["individual-loan"]);
 
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("eligible");
-    expect(ind.rate?.percent).toBe(6);
+    expect(ind.rate?.percent).toBe(8);
     expect(ind.rate?.status).toBe("confirmed");
+    expect(ind.rate?.text).toBe("8% a year");
     expect(ind.split?.nbcfdcPercent).toBe(85);
     expect(ind.split?.otherPercent).toBe(15);
+    expect(ind.repayment?.years).toBe(7);
+    expect(ind.repayment?.moratoriumMonths).toBe(3);
+    expect(ind.repayment?.text).toBe(
+      "Repay over about 7 years. No repayment for the first 3 months. Your state agency sets the exact schedule."
+    );
+    expect(ind.rebateNote).toBe(
+      "1% yearly timely-payment rebate shared equally between channel partner and beneficiary (about 0.5% to you)."
+    );
+    expect(ind.notes.some((n) => n.code === "timely_payment_rebate")).toBe(true);
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("eligible");
-    expect(swarnima.rate?.percent).toBe(5);
-    expect(swarnima.rate?.status).toBe("confirmed");
-    expect(swarnima.split?.nbcfdcPercent).toBeNull();
-    expect(swarnima.split?.otherPercent).toBeNull();
-
-    const micro = result.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    expect(micro.status).toBe("notEligible");
-    expect(micro.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
-
-    const mahila = result.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.status).toBe("notEligible");
-    expect(mahila.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
+    expect(group.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
   });
 
-  // E3: A with gender "man", incomeBand "3to5L", loanAmount 400000 → individual-loan eligible; new-swarnima notEligible with BOTH women_only AND income_above_limit AND loan_above_cap reasons; SHG schemes notEligible.
-  it("E3: Male applicant with 3to5L and 4L loan fails multiple checks on new-swarnima", () => {
+  // E3: A with gender "man", incomeBand "3to5L", loanAmount 400000 → individual-loan eligible (rate 8); group-loan notEligible with wrong_apply_mode, income_above_limit, and loan_above_cap reasons.
+  it("E3: Male applicant with 3to5L and 4L loan passes individual-loan, fails multiple checks on group-loan", () => {
     const input: EligibilityAnswers = {
       ...BASE_A,
       gender: "man",
@@ -80,22 +79,14 @@ describe("evaluateEligibility", () => {
 
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("eligible");
-    expect(ind.rate?.percent).toBe(6);
+    expect(ind.rate?.percent).toBe(8);
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("notEligible");
-    const codes = swarnima.reasons.map((r) => r.code);
-    expect(codes).toContain("women_only");
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
+    const codes = group.reasons.map((r) => r.code);
+    expect(codes).toContain("wrong_apply_mode");
     expect(codes).toContain("income_above_limit");
     expect(codes).toContain("loan_above_cap");
-
-    const micro = result.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    expect(micro.status).toBe("notEligible");
-    expect(micro.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
-
-    const mahila = result.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.status).toBe("notEligible");
-    expect(mahila.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
   });
 
   // E4: A with incomeBand "above5L" → all 4 notEligible, each has income_above_limit; summary noneEligible.
@@ -104,6 +95,7 @@ describe("evaluateEligibility", () => {
     const result = evaluateEligibility(input);
     expect(result.summary).toBe("noneEligible");
     expect(result.eligibleIds).toEqual([]);
+    expect(result.schemes).toHaveLength(2);
 
     for (const s of result.schemes) {
       expect(s.status).toBe("notEligible");
@@ -120,9 +112,8 @@ describe("evaluateEligibility", () => {
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("eligible");
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("notEligible");
-    expect(swarnima.reasons.some((r) => r.code === "income_above_limit")).toBe(true);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
   });
 
   // E6: A with backwardClass "no" → all notEligible (not_backward_class).
@@ -148,20 +139,28 @@ describe("evaluateEligibility", () => {
     expect(ind.status).toBe("needsInfo");
     expect(ind.missing).toContain("backwardClass");
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("needsInfo");
-    expect(swarnima.missing).toContain("backwardClass");
+    const resShg = evaluateEligibility({
+      ...BASE_A,
+      applyMode: "shg",
+      loanAmount: 100_000,
+      backwardClass: "notSure",
+    });
+    const group = resShg.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("needsInfo");
+    expect(group.missing).toContain("backwardClass");
   });
 
   // E8: loanAmount 2500000 (exactly cap) on A → individual-loan eligible, rate percent null (slab toConfirm) with the "not confirmed" text.
-  it("E8: loanAmount 2500000 exactly at cap passes individual-loan with unconfirmed rate slab", () => {
+  // E8: loanAmount 2500000 (exactly cap) on A → individual-loan eligible, rate percent 8 (confirmed).
+  it("E8: loanAmount 2500000 exactly at cap passes individual-loan with confirmed 8% rate", () => {
     const input: EligibilityAnswers = { ...BASE_A, loanAmount: 2_500_000 };
     const result = evaluateEligibility(input);
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("eligible");
-    expect(ind.rate?.percent).toBeNull();
-    expect(ind.rate?.status).toBe("toConfirm");
-    expect(ind.rate?.text).toContain("not confirmed");
+    expect(ind.rate?.percent).toBe(8);
+    expect(ind.rate?.status).toBe("confirmed");
+    expect(ind.rate?.text).toBe("8% a year");
+    expect(ind.repayment?.years).toBe(7);
   });
 
   // E9: loanAmount 2500001 → individual-loan notEligible loan_above_cap.
@@ -174,69 +173,60 @@ describe("evaluateEligibility", () => {
   });
 
   // E10: loanAmount 200000 on A → new-swarnima eligible.
-  it("E10: loanAmount 200000 passes new-swarnima", () => {
-    const input: EligibilityAnswers = { ...BASE_A, loanAmount: 200_000 };
+  // E10: loanAmount 125000 with applyMode "shg" → group-loan eligible.
+  it("E10: loanAmount 125000 passes group-loan at cap", () => {
+    const input: EligibilityAnswers = { ...BASE_A, applyMode: "shg", loanAmount: 125_000 };
     const result = evaluateEligibility(input);
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("eligible");
-    expect(swarnima.rate?.percent).toBe(5);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("eligible");
+    expect(group.rate?.percent).toBe(7);
   });
 
-  // E11: loanAmount 200001 → new-swarnima notEligible.
-  it("E11: loanAmount 200001 fails new-swarnima with loan_above_cap", () => {
-    const input: EligibilityAnswers = { ...BASE_A, loanAmount: 200_001 };
+  // E11: loanAmount 125001 with applyMode "shg" → group-loan notEligible with loan_above_cap.
+  it("E11: loanAmount 125001 fails group-loan with loan_above_cap", () => {
+    const input: EligibilityAnswers = { ...BASE_A, applyMode: "shg", loanAmount: 125_001 };
     const result = evaluateEligibility(input);
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("notEligible");
-    expect(swarnima.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
+    expect(group.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
   });
 
-  // E12: A with applyMode "shg", loanAmount 100000 → mahila-samriddhi eligible (rate 4, split 95/5), micro-finance-shg eligible (rate 5, split 90/10), individual-loan + new-swarnima notEligible (wrong_apply_mode).
-  it("E12: applyMode shg with 1L passes both SHG schemes and fails individual ones", () => {
+  // E12: A with applyMode "shg", loanAmount 100000 → group-loan eligible (rate 7, split 90/10, repayment 3y), individual-loan notEligible (wrong_apply_mode).
+  it("E12: applyMode shg with 1L passes group-loan and fails individual loan", () => {
     const input: EligibilityAnswers = { ...BASE_A, applyMode: "shg", loanAmount: 100_000 };
     const result = evaluateEligibility(input);
-    expect(result.eligibleIds).toEqual(["micro-finance-shg", "mahila-samriddhi"]);
+    expect(result.eligibleIds).toEqual(["group-loan"]);
 
-    const mahila = result.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.status).toBe("eligible");
-    expect(mahila.rate?.percent).toBe(4);
-    expect(mahila.split?.nbcfdcPercent).toBe(95);
-    expect(mahila.split?.otherPercent).toBe(5);
-
-    const micro = result.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    expect(micro.status).toBe("eligible");
-    expect(micro.rate?.percent).toBe(5);
-    expect(micro.split?.nbcfdcPercent).toBe(90);
-    expect(micro.split?.otherPercent).toBe(10);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("eligible");
+    expect(group.rate?.percent).toBe(7);
+    expect(group.split?.nbcfdcPercent).toBe(90);
+    expect(group.split?.otherPercent).toBe(10);
+    expect(group.repayment?.years).toBe(3);
+    expect(group.repayment?.moratoriumMonths).toBe(3);
+    expect(group.repayment?.text).toBe(
+      "Repay over about 3 years. No repayment for the first 3 months. Your state agency sets the exact schedule."
+    );
 
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("notEligible");
     expect(ind.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
-
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("notEligible");
-    expect(swarnima.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
   });
 
-  // E13: same with loanAmount 125000 → both SHG eligible; 125001 → both SHG notEligible.
-  it("E13: SHG schemes cap boundary at 125000 and 125001", () => {
+  // E13: group-loan cap boundary at 125000 and 125001.
+  it("E13: group-loan cap boundary at 125000 and 125001", () => {
     const atCap = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 125_000 });
-    const microAt = atCap.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahilaAt = atCap.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(microAt.status).toBe("eligible");
-    expect(mahilaAt.status).toBe("eligible");
+    const groupAt = atCap.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(groupAt.status).toBe("eligible");
 
     const aboveCap = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 125_001 });
-    const microAbove = aboveCap.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahilaAbove = aboveCap.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(microAbove.status).toBe("notEligible");
-    expect(microAbove.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
-    expect(mahilaAbove.status).toBe("notEligible");
-    expect(mahilaAbove.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
+    const groupAbove = aboveCap.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(groupAbove.status).toBe("notEligible");
+    expect(groupAbove.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
   });
 
-  // E14: A with applyMode "shg", gender "man" → mahila-samriddhi notEligible (women_only), micro-finance-shg eligible.
-  it("E14: Male applicant in SHG is eligible for micro-finance but fails mahila-samriddhi", () => {
+  // E14: Male applicant in SHG is eligible for group-loan.
+  it("E14: Male applicant in SHG is eligible for group-loan", () => {
     const input: EligibilityAnswers = {
       ...BASE_A,
       applyMode: "shg",
@@ -244,47 +234,37 @@ describe("evaluateEligibility", () => {
       loanAmount: 100_000,
     };
     const result = evaluateEligibility(input);
-    expect(result.eligibleIds).toEqual(["micro-finance-shg"]);
+    expect(result.eligibleIds).toEqual(["group-loan"]);
 
-    const mahila = result.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.status).toBe("notEligible");
-    expect(mahila.reasons.some((r) => r.code === "women_only")).toBe(true);
-
-    const micro = result.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    expect(micro.status).toBe("eligible");
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("eligible");
+    expect(group.rate?.percent).toBe(7);
   });
 
   // E15: disability40 "yes": new-swarnima rate 4.75; mahila-samriddhi 3.75; individual-loan with loanAmount 400000 → 5.75; individual-loan with loanAmount 600000 → percent null (not confirmed) and NO concession applied; with no amount → first-slab text and still 5.75-style handling documented in your output.
   it("E15: disability concession applies 0.25% reduction to confirmed rates", () => {
-    // new-swarnima: 5 - 0.25 = 4.75
-    const resSwarnima = evaluateEligibility({ ...BASE_A, disability40: "yes" });
-    const swarnima = resSwarnima.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.rate?.percent).toBe(4.75);
-    expect(swarnima.rate?.text).toContain("4.75%");
-    expect(swarnima.rate?.text).toContain("0.25% less");
+    // disability40 "yes" with individual loan 100k (<=1.25L): rate remains 7%, concession note present
+    const resInd100 = evaluateEligibility({ ...BASE_A, loanAmount: 100_000, disability40: "yes" });
+    const ind100 = resInd100.schemes.find((s) => s.schemeId === "individual-loan")!;
+    expect(ind100.rate?.percent).toBe(7);
+    expect(ind100.notes.some((n) => n.code === "disability_concession")).toBe(true);
 
-    // mahila-samriddhi: 4 - 0.25 = 3.75
-    const resMahila = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000, disability40: "yes" });
-    const mahila = resMahila.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(mahila.rate?.percent).toBe(3.75);
-
-    // individual-loan with 400000: 6 - 0.25 = 5.75
+    // disability40 "yes" with individual loan 400k (>1.25L): rate remains 8%, concession note present
     const resInd400 = evaluateEligibility({ ...BASE_A, loanAmount: 400_000, disability40: "yes" });
     const ind400 = resInd400.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind400.rate?.percent).toBe(5.75);
+    expect(ind400.rate?.percent).toBe(8);
+    expect(ind400.notes.some((n) => n.code === "disability_concession")).toBe(true);
 
-    // individual-loan with 600000: slab toConfirm -> percent null, no concession applied
-    const resInd600 = evaluateEligibility({ ...BASE_A, loanAmount: 600_000, disability40: "yes" });
-    const ind600 = resInd600.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind600.rate?.percent).toBeNull();
-    expect(ind600.rate?.status).toBe("toConfirm");
+    // disability40 "yes" with group-loan: rate remains 7%, concession note present
+    const resGroup = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000, disability40: "yes" });
+    const group = resGroup.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.rate?.percent).toBe(7);
+    expect(group.notes.some((n) => n.code === "disability_concession")).toBe(true);
 
-    // individual-loan with no amount -> first slab 5.75 text
-    const noAmountInput: EligibilityAnswers = { ...BASE_A, loanAmount: undefined, disability40: "yes" };
-    const resNoAmount = evaluateEligibility(noAmountInput);
-    const indNoAmount = resNoAmount.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(indNoAmount.rate?.percent).toBe(5.75);
-    expect(indNoAmount.rate?.text).toContain("5.75%");
+    // User addition 3: disability40 "no" → no disability note
+    const resNoDisability = evaluateEligibility({ ...BASE_A, disability40: "no" });
+    const indNoDis = resNoDisability.schemes.find((s) => s.schemeId === "individual-loan")!;
+    expect(indNoDis.notes.some((n) => n.code === "disability_concession")).toBe(false);
   });
 
   // E16: {gender "man", applyMode "alone", backwardClass "yes"} (income + amount missing) → new-swarnima notEligible (definite failure beats missing); individual-loan needsInfo missing incomeBand.
@@ -296,9 +276,9 @@ describe("evaluateEligibility", () => {
     };
     const result = evaluateEligibility(input);
 
-    const swarnima = result.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima.status).toBe("notEligible");
-    expect(swarnima.reasons.some((r) => r.code === "women_only")).toBe(true);
+    const group = result.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group.status).toBe("notEligible");
+    expect(group.reasons.some((r) => r.code === "wrong_apply_mode")).toBe(true);
 
     const ind = result.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind.status).toBe("needsInfo");
@@ -309,23 +289,20 @@ describe("evaluateEligibility", () => {
   it("E17: loanRange bands drive fitting, straddling notes, and cap failures", () => {
     const baseWithoutAmount: EligibilityAnswers = { ...BASE_A, loanAmount: undefined };
 
-    // "under1L": max 1L <= 2L (new-swarnima cap) -> fits silently
+    // "under1L": max 1L <= 25L cap -> fits silently
     const resUnder1L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "under1L" });
-    const swarnimaUnder = resUnder1L.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnimaUnder.status).toBe("eligible");
-    expect(swarnimaUnder.notes.some((n) => n.code === "loan_amount_decides")).toBe(false);
+    const indUnder = resUnder1L.schemes.find((s) => s.schemeId === "individual-loan")!;
+    expect(indUnder.status).toBe("eligible");
+    expect(indUnder.notes.some((n) => n.code === "loan_amount_decides")).toBe(false);
 
-    // "1to5L": straddles 2L -> eligible with note
+    // "1to5L": fits individual-loan silently
     const res1to5L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "1to5L" });
-    const swarnima1to5 = res1to5L.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima1to5.status).toBe("eligible");
-    expect(swarnima1to5.notes.some((n) => n.code === "loan_amount_decides")).toBe(true);
+    const ind1to5 = res1to5L.schemes.find((s) => s.schemeId === "individual-loan")!;
+    expect(ind1to5.status).toBe("eligible");
+    expect(ind1to5.notes.some((n) => n.code === "loan_amount_decides")).toBe(false);
 
-    // "5to15L": min 5L > 2L -> new-swarnima notEligible loan_above_cap; individual-loan fits
+    // "5to15L": fits individual-loan
     const res5to15L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "5to15L" });
-    const swarnima5to15 = res5to15L.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima5to15.status).toBe("notEligible");
-    expect(swarnima5to15.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
     const ind5to15 = res5to15L.schemes.find((s) => s.schemeId === "individual-loan")!;
     expect(ind5to15.status).toBe("eligible");
 
@@ -348,8 +325,8 @@ describe("evaluateEligibility", () => {
     for (const val of invalidAmounts) {
       expect(() => {
         const res = evaluateEligibility({ ...BASE_A, loanAmount: val, loanRange: "under1L" });
-        const swarnima = res.schemes.find((s) => s.schemeId === "new-swarnima")!;
-        expect(swarnima.status).toBe("eligible");
+        const ind = res.schemes.find((s) => s.schemeId === "individual-loan")!;
+        expect(ind.status).toBe("eligible");
       }).not.toThrow();
     }
   });
@@ -406,18 +383,26 @@ describe("evaluateEligibility", () => {
 
   // E23: config sanity: unique ids; every rule has sourceUrl + lastVerified; where both percents are non-null they sum to 100; "general-loan" is NOT in SCHEME_RULES; exactly 4 active schemes.
   it("E23: Config sanity checks on SCHEME_RULES", () => {
-    expect(SCHEME_RULES).toHaveLength(4);
+    expect(SCHEME_RULES).toHaveLength(2);
 
     const ids = SCHEME_RULES.map((r) => r.id);
-    expect(new Set(ids).size).toBe(4);
+    expect(new Set(ids).size).toBe(2);
     expect(ids).not.toContain("general-loan");
+    expect(ids).not.toContain("new-swarnima");
+    expect(ids).not.toContain("mahila-samriddhi");
+    expect(ids).toContain("individual-loan");
+    expect(ids).toContain("group-loan");
 
     for (const rule of SCHEME_RULES) {
       expect(rule.sourceUrl).toMatch(/^https:\/\//);
       expect(rule.lastVerified).toBe("2026-10-13");
+      expect(rule.moratoriumMonths).toBe(3);
 
       if (rule.split.nbcfdcPercent !== null && rule.split.otherPercent !== null) {
         expect(rule.split.nbcfdcPercent + rule.split.otherPercent).toBe(100);
+      }
+      for (const slab of rule.baseRate.slabs) {
+        expect(slab.repaymentYears).toBeGreaterThan(0);
       }
     }
   });
@@ -438,52 +423,59 @@ describe("evaluateEligibility", () => {
   it("E25: Rate selection respects loanRange and slab overlap", () => {
     const baseWithoutAmount: EligibilityAnswers = { ...BASE_A, loanAmount: undefined };
 
-    // individual-loan: under1L -> 6 / confirmed
+    // individual-loan: under1L -> 7 / confirmed / 4 years repayment
     const resUnder1L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "under1L" });
     const indUnder = resUnder1L.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(indUnder.rate?.percent).toBe(6);
+    expect(indUnder.rate?.percent).toBe(7);
     expect(indUnder.rate?.status).toBe("confirmed");
+    expect(indUnder.rate?.text).toBe("7% a year");
+    expect(indUnder.repayment?.years).toBe(4);
+    expect(indUnder.repayment?.text).toBe(
+      "Repay over about 4 years. No repayment for the first 3 months. Your state agency sets the exact schedule."
+    );
 
-    // individual-loan: 1to5L -> 6 / confirmed
+    // individual-loan: 1to5L (straddling range) -> 8 / confirmed / 7 years repayment (mentions 4 years for <=1.25L)
     const res1to5L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "1to5L" });
     const ind1to5 = res1to5L.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind1to5.rate?.percent).toBe(6);
+    expect(ind1to5.rate?.percent).toBe(8);
     expect(ind1to5.rate?.status).toBe("confirmed");
+    expect(ind1to5.rate?.text).toBe("8% a year (7% for loans up to ₹1.25 lakh)");
+    expect(ind1to5.repayment?.years).toBe(7);
+    expect(ind1to5.repayment?.text).toBe(
+      "Repay over about 7 years (4 years for loans up to ₹1.25 lakh). No repayment for the first 3 months. Your state agency sets the exact schedule."
+    );
 
-    // individual-loan: 5to15L -> percent null, toConfirm, text contains "not confirmed"
+    // individual-loan: 5to15L -> 8 / confirmed / 7 years repayment
     const res5to15L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "5to15L" });
     const ind5to15 = res5to15L.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind5to15.rate?.percent).toBeNull();
-    expect(ind5to15.rate?.status).toBe("toConfirm");
-    expect(ind5to15.rate?.text).toContain("not confirmed");
+    expect(ind5to15.rate?.percent).toBe(8);
+    expect(ind5to15.rate?.status).toBe("confirmed");
+    expect(ind5to15.rate?.text).toBe("8% a year");
+    expect(ind5to15.repayment?.years).toBe(7);
+    expect(ind5to15.repayment?.text).toBe(
+      "Repay over about 7 years. No repayment for the first 3 months. Your state agency sets the exact schedule."
+    );
 
-    // individual-loan: above15L -> percent null, toConfirm
+    // individual-loan: above15L -> 8 / confirmed / 7 years repayment
     const resAbove15L = evaluateEligibility({ ...baseWithoutAmount, loanRange: "above15L" });
     const indAbove = resAbove15L.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(indAbove.rate?.percent).toBeNull();
-    expect(indAbove.rate?.status).toBe("toConfirm");
+    expect(indAbove.rate?.percent).toBe(8);
+    expect(indAbove.rate?.status).toBe("confirmed");
+    expect(indAbove.rate?.text).toBe("8% a year");
+    expect(indAbove.repayment?.years).toBe(7);
 
-    // With disability40 "yes": 1to5L -> 5.75; 5to15L -> null (no concession)
+    // With disability40 "yes": base rate percent unchanged, concession note added
     const res1to5LDis = evaluateEligibility({ ...baseWithoutAmount, loanRange: "1to5L", disability40: "yes" });
     const ind1to5Dis = res1to5LDis.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind1to5Dis.rate?.percent).toBe(5.75);
+    expect(ind1to5Dis.rate?.percent).toBe(8);
     expect(ind1to5Dis.rate?.status).toBe("confirmed");
+    expect(ind1to5Dis.notes.some((n) => n.code === "disability_concession")).toBe(true);
 
     const res5to15LDis = evaluateEligibility({ ...baseWithoutAmount, loanRange: "5to15L", disability40: "yes" });
     const ind5to15Dis = res5to15LDis.schemes.find((s) => s.schemeId === "individual-loan")!;
-    expect(ind5to15Dis.rate?.percent).toBeNull();
-    expect(ind5to15Dis.rate?.status).toBe("toConfirm");
-
-    // new-swarnima with loanRange under1L -> 5
-    const swarnimaUnder = resUnder1L.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnimaUnder.rate?.percent).toBe(5);
-    expect(swarnimaUnder.rate?.status).toBe("confirmed");
-
-    // new-swarnima with 1to5L with disability "yes" -> 4.75
-    const resSwarnima1to5LDis = evaluateEligibility({ ...baseWithoutAmount, loanRange: "1to5L", disability40: "yes" });
-    const swarnima1to5Dis = resSwarnima1to5LDis.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(swarnima1to5Dis.rate?.percent).toBe(4.75);
-    expect(swarnima1to5Dis.rate?.status).toBe("confirmed");
+    expect(ind5to15Dis.rate?.percent).toBe(8);
+    expect(ind5to15Dis.rate?.status).toBe("confirmed");
+    expect(ind5to15Dis.notes.some((n) => n.code === "disability_concession")).toBe(true);
   });
 
   // E26: custom rules param: a copy of SCHEME_RULES[0] with baseRate slabs [{upTo 300000, percent 6, confirmed}, {upTo null, percent 0, toConfirm}] and loanRange "1to5L" (band 100,000–500,000 overlaps both slabs) → percent null, status "toConfirm", text contains "up to".
@@ -492,8 +484,8 @@ describe("evaluateEligibility", () => {
       ...SCHEME_RULES[0],
       baseRate: {
         slabs: [
-          { upTo: 300_000, percent: 6, status: "confirmed" },
-          { upTo: null, percent: 0, status: "toConfirm" },
+          { upTo: 300_000, percent: 6, status: "confirmed", repaymentYears: 4 },
+          { upTo: null, percent: 0, status: "toConfirm", repaymentYears: 7 },
         ],
       },
     };
@@ -505,47 +497,33 @@ describe("evaluateEligibility", () => {
     expect(schemeRes.rate?.text).toContain("up to");
   });
 
-  // E27: income_limit_unconfirmed note: Base A with applyMode "shg", loanAmount 100000 → present on micro-finance-shg and mahila-samriddhi, absent on individual-loan and new-swarnima. Base A with applyMode "shg", incomeBand "3to5L" → present on both SHG schemes (they are notEligible with income_above_limit). Base A with applyMode "shg", backwardClass "no" → ABSENT on both SHG schemes (notEligible for another reason only). Base A with applyMode "shg" and incomeBand "notSure" → present on both SHG schemes (needsInfo).
+  // E27: income_limit_unconfirmed note: Base A with applyMode "shg", loanAmount 100000 → present on group-loan, absent on individual-loan. Base A with applyMode "shg", incomeBand "3to5L" → present on group-loan (they are notEligible with income_above_limit). Base A with applyMode "shg", backwardClass "no" → ABSENT on group-loan (notEligible for another reason only). Base A with applyMode "shg" and incomeBand "notSure" → present on group-loan (needsInfo).
   it("E27: income_limit_unconfirmed note surfaces correctly", () => {
-    // 1) Base A with applyMode "shg", loanAmount 100000 -> present on both SHG schemes, absent on individual-loan and new-swarnima
+    // 1) Base A with applyMode "shg", loanAmount 100000 -> present on group-loan, absent on individual-loan
     const res1 = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000 });
-    const micro1 = res1.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahila1 = res1.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
+    const group1 = res1.schemes.find((s) => s.schemeId === "group-loan")!;
     const ind1 = res1.schemes.find((s) => s.schemeId === "individual-loan")!;
-    const swarnima1 = res1.schemes.find((s) => s.schemeId === "new-swarnima")!;
-    expect(micro1.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
-    expect(mahila1.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
+    expect(group1.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
     expect(ind1.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(false);
-    expect(swarnima1.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(false);
 
-    // 2) Base A with applyMode "shg", incomeBand "3to5L" -> present on both SHG schemes (notEligible with income_above_limit)
+    // 2) Base A with applyMode "shg", incomeBand "3to5L" -> present on group-loan (notEligible with income_above_limit)
     const res2 = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000, incomeBand: "3to5L" });
-    const micro2 = res2.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahila2 = res2.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(micro2.status).toBe("notEligible");
-    expect(micro2.reasons.some((r) => r.code === "income_above_limit")).toBe(true);
-    expect(micro2.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
-    expect(mahila2.status).toBe("notEligible");
-    expect(mahila2.reasons.some((r) => r.code === "income_above_limit")).toBe(true);
-    expect(mahila2.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
+    const group2 = res2.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group2.status).toBe("notEligible");
+    expect(group2.reasons.some((r) => r.code === "income_above_limit")).toBe(true);
+    expect(group2.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
 
-    // 3) Base A with applyMode "shg", backwardClass "no" -> ABSENT on both SHG schemes (notEligible for another reason only)
+    // 3) Base A with applyMode "shg", backwardClass "no" -> ABSENT on group-loan (notEligible for another reason only)
     const res3 = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000, backwardClass: "no" });
-    const micro3 = res3.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahila3 = res3.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(micro3.status).toBe("notEligible");
-    expect(micro3.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(false);
-    expect(mahila3.status).toBe("notEligible");
-    expect(mahila3.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(false);
+    const group3 = res3.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group3.status).toBe("notEligible");
+    expect(group3.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(false);
 
-    // 4) Base A with applyMode "shg" and incomeBand "notSure" -> present on both SHG schemes (needsInfo)
+    // 4) Base A with applyMode "shg" and incomeBand "notSure" -> present on group-loan (needsInfo)
     const res4 = evaluateEligibility({ ...BASE_A, applyMode: "shg", loanAmount: 100_000, incomeBand: "notSure" });
-    const micro4 = res4.schemes.find((s) => s.schemeId === "micro-finance-shg")!;
-    const mahila4 = res4.schemes.find((s) => s.schemeId === "mahila-samriddhi")!;
-    expect(micro4.status).toBe("needsInfo");
-    expect(micro4.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
-    expect(mahila4.status).toBe("needsInfo");
-    expect(mahila4.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
+    const group4 = res4.schemes.find((s) => s.schemeId === "group-loan")!;
+    expect(group4.status).toBe("needsInfo");
+    expect(group4.notes.some((n) => n.code === "income_limit_unconfirmed")).toBe(true);
   });
 
   // E28: evaluateEligibility(null as any), evaluateEligibility(undefined), evaluateEligibility("x" as any), evaluateEligibility(5 as any) → none throw, each deep-equals evaluateEligibility({}).

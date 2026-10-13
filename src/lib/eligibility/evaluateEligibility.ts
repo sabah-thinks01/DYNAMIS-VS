@@ -60,20 +60,51 @@ const LOAN_RANGE_BANDS: Record<
   above15L: { min: 1_500_000, max: Infinity },
 };
 
-function pickRate(
+function formatLakhAmount(n: number): string {
+  if (!isFinite(n)) return "₹0";
+  if (Math.abs(n) >= 100_000) {
+    const inLakhs = n / 100_000;
+    const formatted = inLakhs.toFixed(2).replace(/\.?0+$/, "");
+    return `₹${formatted} lakh`;
+  }
+  return formatLakh(n);
+}
+
+function formatRepaymentText(
+  years: number,
+  moratoriumMonths: number,
+  extraNote?: string
+): string {
+  const prefix = extraNote
+    ? `Repay over about ${years} years (${extraNote}).`
+    : `Repay over about ${years} years.`;
+  const morText =
+    moratoriumMonths > 0
+      ? ` No repayment for the first ${moratoriumMonths} months.`
+      : "";
+  return `${prefix}${morText} Your state agency sets the exact schedule.`;
+}
+
+function pickRateAndRepayment(
   scheme: SchemeRule,
   validLoanAmount: number | undefined,
-  loanRange: LoanRangeKey | undefined,
-  hasDisability: boolean,
-  notes: Message[]
+  loanRange: LoanRangeKey | undefined
 ): {
-  percent: number | null;
-  status: "confirmed" | "toConfirm";
-  text: string;
+  rate: {
+    percent: number | null;
+    status: "confirmed" | "toConfirm";
+    text: string;
+  };
+  repayment: {
+    years: number;
+    moratoriumMonths: number;
+    text: string;
+  };
 } {
   // Case a) validLoanAmount is defined
   if (validLoanAmount !== undefined) {
-    let selectedSlab: RateSlab = scheme.baseRate.slabs[scheme.baseRate.slabs.length - 1];
+    let selectedSlab: RateSlab =
+      scheme.baseRate.slabs[scheme.baseRate.slabs.length - 1];
     for (const slab of scheme.baseRate.slabs) {
       if (slab.upTo !== null && validLoanAmount <= slab.upTo) {
         selectedSlab = slab;
@@ -81,25 +112,29 @@ function pickRate(
       }
     }
 
-    if (selectedSlab.status === "toConfirm") {
-      return {
-        percent: null,
-        status: "toConfirm",
-        text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
-      };
-    }
+    const rate =
+      selectedSlab.status === "toConfirm"
+        ? {
+            percent: null,
+            status: "toConfirm" as const,
+            text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
+          }
+        : {
+            percent: selectedSlab.percent,
+            status: "confirmed" as const,
+            text: `${selectedSlab.percent}% a year`,
+          };
 
-    const finalPercent = hasDisability
-      ? selectedSlab.percent - scheme.disabilityConcessionPercent
-      : selectedSlab.percent;
-    const text = hasDisability
-      ? `${finalPercent}% a year (${scheme.disabilityConcessionPercent}% less for disability of 40% or more)`
-      : `${finalPercent}% a year`;
-    return {
-      percent: finalPercent,
-      status: "confirmed",
-      text,
+    const repayment = {
+      years: selectedSlab.repaymentYears,
+      moratoriumMonths: scheme.moratoriumMonths,
+      text: formatRepaymentText(
+        selectedSlab.repaymentYears,
+        scheme.moratoriumMonths
+      ),
     };
+
+    return { rate, repayment };
   }
 
   // Case b) No valid amount AND loanRange is one of under1L / 1to5L / 5to15L / above15L
@@ -118,74 +153,123 @@ function pickRate(
 
     if (overlappingSlabs.length === 1) {
       const slab = overlappingSlabs[0];
-      if (slab.status === "toConfirm") {
-        return {
-          percent: null,
-          status: "toConfirm",
-          text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
-        };
-      }
-      const finalPercent = hasDisability
-        ? slab.percent - scheme.disabilityConcessionPercent
-        : slab.percent;
-      const text = hasDisability
-        ? `${finalPercent}% a year (${scheme.disabilityConcessionPercent}% less for disability of 40% or more)`
-        : `${finalPercent}% a year`;
-      return {
-        percent: finalPercent,
-        status: "confirmed",
-        text,
+      const rate =
+        slab.status === "toConfirm"
+          ? {
+              percent: null,
+              status: "toConfirm" as const,
+              text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
+            }
+          : {
+              percent: slab.percent,
+              status: "confirmed" as const,
+              text: `${slab.percent}% a year`,
+            };
+
+      const repayment = {
+        years: slab.repaymentYears,
+        moratoriumMonths: scheme.moratoriumMonths,
+        text: formatRepaymentText(
+          slab.repaymentYears,
+          scheme.moratoriumMonths
+        ),
       };
+
+      return { rate, repayment };
     }
 
     if (overlappingSlabs.length > 1) {
       const firstSlab = overlappingSlabs[0];
-      if (firstSlab.status === "toConfirm") {
-        return {
-          percent: null,
-          status: "toConfirm",
-          text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
+      const hasUnconfirmed = overlappingSlabs.some((s) => s.status === "toConfirm");
+
+      if (hasUnconfirmed) {
+        const rate =
+          firstSlab.status === "toConfirm"
+            ? {
+                percent: null,
+                status: "toConfirm" as const,
+                text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
+              }
+            : {
+                percent: null,
+                status: "toConfirm" as const,
+                text: `${firstSlab.percent}% a year for loans up to ${formatLakhAmount(
+                  firstSlab.upTo ?? 0
+                )}. Above that the rate is not confirmed yet — your state agency will tell you.`,
+              };
+
+        const repayment = {
+          years: firstSlab.repaymentYears,
+          moratoriumMonths: scheme.moratoriumMonths,
+          text: formatRepaymentText(
+            firstSlab.repaymentYears,
+            scheme.moratoriumMonths
+          ),
         };
+
+        return { rate, repayment };
       }
-      const slabPercent = hasDisability
-        ? firstSlab.percent - scheme.disabilityConcessionPercent
-        : firstSlab.percent;
-      const upToText = formatLakh(firstSlab.upTo ?? 0);
-      return {
-        percent: null,
-        status: "toConfirm",
-        text: `${slabPercent}% a year for loans up to ${upToText}. Above that the rate is not confirmed yet — your state agency will tell you.`,
+
+      // All overlapping slabs are confirmed (e.g. NBCFDC Individual Loan: 7% up to 1.25L, 8% above)
+      const chosenSlab = overlappingSlabs[overlappingSlabs.length - 1];
+      const firstUpToText = formatLakhAmount(firstSlab.upTo ?? 0);
+
+      const rate = {
+        percent: chosenSlab.percent,
+        status: "confirmed" as const,
+        text: `${chosenSlab.percent}% a year (${firstSlab.percent}% for loans up to ${firstUpToText})`,
       };
+
+      const repayment = {
+        years: chosenSlab.repaymentYears,
+        moratoriumMonths: scheme.moratoriumMonths,
+        text: formatRepaymentText(
+          chosenSlab.repaymentYears,
+          scheme.moratoriumMonths,
+          `${firstSlab.repaymentYears} years for loans up to ${firstUpToText}`
+        ),
+      };
+
+      return { rate, repayment };
     }
   }
 
   // Case c) No valid amount AND (loanRange undefined or "notSure")
   const firstSlab = scheme.baseRate.slabs[0];
-  const finalPercent = hasDisability
-    ? firstSlab.percent - scheme.disabilityConcessionPercent
-    : firstSlab.percent;
-
   let slabLimitText = "";
-  if (firstSlab.upTo !== null) {
-    slabLimitText = ` for loans up to ${formatLakh(firstSlab.upTo)}`;
+  if (firstSlab.upTo !== null && scheme.baseRate.slabs.length > 1) {
+    slabLimitText = ` for loans up to ${formatLakhAmount(firstSlab.upTo)}`;
   }
 
-  const rateText = hasDisability
-    ? `${finalPercent}% a year${slabLimitText} (${scheme.disabilityConcessionPercent}% less for disability of 40% or more)`
-    : `${finalPercent}% a year${slabLimitText}`;
+  const rate =
+    firstSlab.status === "toConfirm"
+      ? {
+          percent: null,
+          status: "toConfirm" as const,
+          text: "Interest rate for this loan size is not confirmed yet — your state agency will tell you.",
+        }
+      : {
+          percent: firstSlab.percent,
+          status: firstSlab.status,
+          text: `${firstSlab.percent}% a year${slabLimitText}`,
+        };
 
-  if (!hasDisability && scheme.disabilityConcessionPercent > 0) {
-    notes.push({
-      code: "disability_concession",
-      text: `${scheme.disabilityConcessionPercent}% less if you have a disability of 40% or more.`,
-    });
-  }
+  const repExtra =
+    firstSlab.upTo !== null && scheme.baseRate.slabs.length > 1
+      ? `for loans up to ${formatLakhAmount(firstSlab.upTo)}`
+      : undefined;
 
-  return {
-    percent: finalPercent,
-    status: firstSlab.status,
-    text: rateText,
+  const repayment = {
+    years: firstSlab.repaymentYears,
+    moratoriumMonths: scheme.moratoriumMonths,
+    text: formatRepaymentText(
+      firstSlab.repaymentYears,
+      scheme.moratoriumMonths,
+      repExtra
+    ),
   };
+
+  return { rate, repayment };
 }
 
 export function evaluateEligibility(
@@ -377,7 +461,7 @@ export function evaluateEligibility(
       lastVerified: scheme.lastVerified,
     };
 
-    // Populate split and rate ONLY when eligible
+    // Populate split, rate, repayment, rebateNote ONLY when eligible
     if (status === "eligible") {
       res.split = {
         nbcfdcPercent: scheme.split.nbcfdcPercent,
@@ -385,8 +469,28 @@ export function evaluateEligibility(
         text: scheme.split.text,
       };
 
-      const hasDisability = disability40 === "yes";
-      res.rate = pickRate(scheme, validLoanAmount, loanRange, hasDisability, notes);
+      const { rate, repayment } = pickRateAndRepayment(
+        scheme,
+        validLoanAmount,
+        loanRange
+      );
+      res.rate = rate;
+      res.repayment = repayment;
+
+      if (scheme.rebateNote) {
+        res.rebateNote = scheme.rebateNote;
+        notes.push({
+          code: "timely_payment_rebate",
+          text: scheme.rebateNote,
+        });
+      }
+
+      if (disability40 === "yes" && scheme.disabilityConcession) {
+        notes.push({
+          code: "disability_concession",
+          text: scheme.disabilityConcession.note,
+        });
+      }
     }
 
     return res;

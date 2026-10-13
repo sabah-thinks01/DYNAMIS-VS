@@ -10,8 +10,8 @@ describe("resultsView", () => {
     const res = evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS);
     const grouped = groupSchemes(res);
 
-    expect(grouped.eligible.map((s) => s.schemeId)).toEqual(["individual-loan", "new-swarnima"]);
-    expect(grouped.notEligible.map((s) => s.schemeId)).toEqual(["micro-finance-shg", "mahila-samriddhi"]);
+    expect(grouped.eligible.map((s) => s.schemeId)).toEqual(["individual-loan"]);
+    expect(grouped.notEligible.map((s) => s.schemeId)).toEqual(["group-loan"]);
     expect(grouped.needsInfo).toEqual([]);
   });
 
@@ -19,7 +19,7 @@ describe("resultsView", () => {
     const res = evaluateEligibility({});
     const grouped = groupSchemes(res);
 
-    expect(grouped.needsInfo).toHaveLength(4);
+    expect(grouped.needsInfo).toHaveLength(2);
     expect(grouped.eligible).toEqual([]);
     expect(grouped.notEligible).toEqual([]);
   });
@@ -100,7 +100,7 @@ describe("resultsView", () => {
   it("R8 rateLabel returns text, never builds from percent, and returns empty for missing", () => {
     const sampleRes = evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS);
     const individualSample = sampleRes.schemes.find((s) => s.schemeId === "individual-loan");
-    expect(individualSample?.rate?.percent).toBe(6);
+    expect(individualSample?.rate?.percent).toBe(8);
     expect(rateLabel(individualSample)).toBe(individualSample?.rate?.text);
 
     const bandRes = evaluateEligibility({
@@ -111,9 +111,22 @@ describe("resultsView", () => {
       loanRange: "5to15L",
     });
     const individualBand = bandRes.schemes.find((s) => s.schemeId === "individual-loan");
-    expect(individualBand?.rate?.percent).toBeNull();
+    expect(individualBand?.rate?.percent).toBe(8);
     expect(rateLabel(individualBand)).toBe(individualBand?.rate?.text);
     expect(rateLabel(individualBand).length).toBeGreaterThan(0);
+
+    // Unconfirmed slab returns null percent but rateLabel returns the explanatory text
+    const customRes = evaluateEligibility(SAMPLE_ELIGIBILITY_ANSWERS, [
+      {
+        ...SCHEME_RULES[0],
+        baseRate: {
+          slabs: [{ upTo: null, percent: 0, status: "toConfirm", repaymentYears: 5 }],
+        },
+      },
+    ]);
+    expect(customRes.schemes[0].rate?.percent).toBeNull();
+    expect(rateLabel(customRes.schemes[0])).toBe(customRes.schemes[0].rate?.text);
+    expect(rateLabel(customRes.schemes[0]).length).toBeGreaterThan(0);
 
     expect(rateLabel({} as SchemeResult)).toBe("");
     expect(rateLabel(null)).toBe("");

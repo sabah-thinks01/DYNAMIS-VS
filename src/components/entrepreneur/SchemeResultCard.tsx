@@ -35,6 +35,12 @@ export function SchemeResultCard({
                 <span className="font-semibold text-main">{interest}</span>
               </div>
             )}
+            {scheme.repayment?.text && (
+              <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                <span className="text-muted font-medium sm:w-36 shrink-0">Repayment:</span>
+                <span className="font-semibold text-main">{scheme.repayment.text}</span>
+              </div>
+            )}
             {scheme.split?.text && (
               <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
                 <span className="text-muted font-medium sm:w-36 shrink-0">Who pays:</span>
