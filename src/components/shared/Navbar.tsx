@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { Role } from "@/components/shared/AppShell";
 import { ROLE_HOME } from "@/components/shared/AppShell";
-import { Map, Lightbulb, ListTodo, Briefcase, Calculator, ShieldHalf, X } from "lucide-react";
+import { Map, Lightbulb, ListTodo, Briefcase, Calculator, Wallet, ShieldHalf, X } from "lucide-react";
 
 interface SidebarProps {
   currentRole: Role;
@@ -22,6 +22,7 @@ const MODULE1_LINKS = [
 
 const MODULE2_LINKS = [
   { href: "/module2/scheme-match", label: "Scheme Match", icon: Calculator },
+  { href: "/module2/loan-planner", label: "Loan Planner", icon: Wallet },
 ];
 
 const OFFICER_LINKS = [
