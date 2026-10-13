@@ -1,5 +1,6 @@
 import { peopleInReach } from "./reach";
-import { formatApprox } from "@/lib/format";
+import { formatApprox, formatLakh } from "@/lib/format";
+import { getMaxLoanCap } from "@/lib/eligibility/loanCap";
 import type { CachedMarketRoom } from "./marketRoomCache";
 
 export type SwotKind = "strength" | "opportunity" | "weakness" | "threat";
@@ -130,10 +131,14 @@ export function buildSwot(input: BuildSwotInput): { helps: SwotPoint[]; hurts: S
 
   // 4. Loan Range (Your answers)
   if (input.loanRange === "above15L") {
+    const cap = getMaxLoanCap();
     hurts.push({
       id: "loanAbove15L",
       kind: "weakness",
-      text: "The money you need may be above the NBCFDC General Loan limit.",
+      text:
+        cap > 0
+          ? `The money you need is large. NBCFDC loans here go up to ${formatLakh(cap)}.`
+          : "The money you need is large.",
       todo: "Check Scheme Match, or start with a smaller plan.",
       source: "Your answers",
     });
