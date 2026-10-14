@@ -192,6 +192,7 @@ export default function MapView({
         setIsMapReady(false);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- center and radiusKm only set initial map state; updates are handled by the overlay effect below without destroying the map
   }, [isScriptLoaded, mapContainerId]);
 
   // 5. Overlays & Radius / Center update effect (does NOT recreate the map)

@@ -103,6 +103,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const centerInfoWindowRef = useRef<any>(null);
+  const compInfoWindowsRef = useRef<any[]>([]);
   const realPinsRef = useRef<any[]>([]);
   const pluginInjectedRef = useRef(false);
   const appliedFocusRef = useRef<string | null>(null);
@@ -193,6 +194,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
           centerInfoWindowRef.current = null;
         }
 
+        compInfoWindowsRef.current.forEach(iw => {
+          try {
+            if (typeof iw.close === "function") iw.close();
+            else if (typeof iw.remove === "function") iw.remove();
+          } catch (e) {}
+        });
+        compInfoWindowsRef.current = [];
+
         markersRef.current.forEach(m => {
           try {
             if (m && typeof m.remove === "function") m.remove();
@@ -221,6 +230,8 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       }
     };
   }, [isScriptLoaded, centerLat, centerLng, mapContainerId]);
+
+  const keywordsKey = keywords?.join(",");
 
   // Real Data Fetching Effect
   useEffect(() => {
@@ -375,7 +386,8 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       active = false;
       clearTimeout(timeout);
     };
-  }, [searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded, isMapReady, keywords?.join(",")]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keywordsKey provides stable primitive comparison for keywords array
+  }, [searchCenter, centerLat, centerLng, radiusKm, isPluginLoaded, isMapReady, keywordsKey]);
 
   // Marker Lifecycle Effect (runs on filter/center change)
   useEffect(() => {
@@ -390,6 +402,14 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
       } catch (e) {}
       centerInfoWindowRef.current = null;
     }
+
+    compInfoWindowsRef.current.forEach(iw => {
+      try {
+        if (typeof iw.close === "function") iw.close();
+        else if (typeof iw.remove === "function") iw.remove();
+      } catch (e) {}
+    });
+    compInfoWindowsRef.current = [];
 
     // 1. Remove existing markers (Mappls Web SDK v3.0 standard pattern)
     // Diffing/updating isn't inherently faster in Mapbox-style frameworks than a clean remove/add cycle 
@@ -475,6 +495,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
           position: { lng: compLng, lat: compLat },
           content: compPopupHTML,
         });
+        compInfoWindowsRef.current.push(compInfoWindow);
 
         safelyBindEvent(compMarker, "click", () => {
           compInfoWindow.setPosition({ lng: compLng, lat: compLat });
@@ -569,6 +590,7 @@ export default function CompetitorMap({ centerLat, centerLng, competitors, focus
     if (!isMapReady || !focus || appliedFocusRef.current === focus.key) return;
     appliedFocusRef.current = focus.key;
     handleSelectResult({ lat: focus.lat, lng: focus.lng });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally runs only when focus.key changes or map becomes ready; focus is a new object reference on every render
   }, [isMapReady, focus?.key]);
 
   const handleGpsLocation = () => {
