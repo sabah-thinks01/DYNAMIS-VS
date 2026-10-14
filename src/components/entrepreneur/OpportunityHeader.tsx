@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ViabilityScoreCard } from "@/components/entrepreneur/ViabilityScoreCard";
 import { MarketRoomCard, type MarketRoomCardState } from "@/components/entrepreneur/MarketRoomCard";
+import { AlternativesCard } from "@/components/entrepreneur/AlternativesCard";
 import { useUserLocation } from "@/lib/location/useUserLocation";
 import { useDistrictGeo } from "@/lib/geo/useDistrictGeo";
 import { useNearbyStats } from "@/lib/score/useNearbyStats";
@@ -122,11 +123,14 @@ export function OpportunityHeader({
 
   if (!isRealUser || !cardState) {
     return (
-      <ViabilityScoreCard
-        businessName={sampleBusinessName}
-        location={sampleLocation}
-        viabilityScore={sampleScore}
-      />
+      <div className="space-y-6">
+        <ViabilityScoreCard
+          businessName={sampleBusinessName}
+          location={sampleLocation}
+          viabilityScore={sampleScore}
+        />
+        <AlternativesCard />
+      </div>
     );
   }
 
@@ -151,13 +155,16 @@ export function OpportunityHeader({
     : "similar business";
 
   return (
-    <MarketRoomCard
-      businessName={businessName}
-      location={location}
-      state={cardState}
-      geo={geoResult.geo}
-      radiusKm={radius}
-      keyword={keyword}
-    />
+    <div className="space-y-6">
+      <MarketRoomCard
+        businessName={businessName}
+        location={location}
+        state={cardState}
+        geo={geoResult.geo}
+        radiusKm={radius}
+        keyword={keyword}
+      />
+      <AlternativesCard />
+    </div>
   );
 }
