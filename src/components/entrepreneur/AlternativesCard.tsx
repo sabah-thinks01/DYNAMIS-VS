@@ -251,6 +251,12 @@ export function AlternativesCard({
   const hasNotSeen = result.notSeen.length > 0;
   const hasUnchecked = result.unchecked.length > 0;
   const isEmpty = !hasRanked && !hasNotSeen;
+  const formattedRadius =
+    typeof radiusKm === "number"
+      ? Number.isInteger(radiusKm)
+        ? `${radiusKm}`
+        : radiusKm.toFixed(1)
+      : "";
 
   return (
     <div className="space-y-4">
@@ -359,7 +365,7 @@ export function AlternativesCard({
         {/* How we worked this out footer */}
         <div className="border-t border-border-default/60 pt-3">
           <p className="text-xs sm:text-sm text-muted leading-relaxed">
-            Same rule as Market Room: Census 2011 population within {radiusKm} km ÷ businesses listed on Mappls. Prototype thresholds, to be tuned with SCA data.
+            Same rule as Market Room: Census 2011 population within {formattedRadius} km ÷ businesses listed on Mappls. Prototype thresholds, to be tuned with SCA data.
           </p>
         </div>
       </div>

@@ -89,7 +89,7 @@ describe("evaluateEligibility", () => {
     expect(codes).toContain("loan_above_cap");
   });
 
-  // E4: A with incomeBand "above5L" → all 4 notEligible, each has income_above_limit; summary noneEligible.
+  // E4: Base A with incomeBand "above5L" → summary "noneEligible", eligibleIds empty, 2 schemes both notEligible with code "income_above_limit".
   it("E4: Income above5L makes all schemes notEligible", () => {
     const input: EligibilityAnswers = { ...BASE_A, incomeBand: "above5L" };
     const result = evaluateEligibility(input);
@@ -103,8 +103,8 @@ describe("evaluateEligibility", () => {
     }
   });
 
-  // E5: A with incomeBand "3to5L" → individual-loan eligible, new-swarnima notEligible (income).
-  it("E5: Income 3to5L passes individual-loan but fails new-swarnima", () => {
+  // E5: Base A with incomeBand "3to5L" → eligibleIds has "individual-loan" (status "eligible"), "group-loan" status "notEligible".
+  it("E5: Income 3to5L passes individual-loan but fails group-loan", () => {
     const input: EligibilityAnswers = { ...BASE_A, incomeBand: "3to5L" };
     const result = evaluateEligibility(input);
     expect(result.eligibleIds).toEqual(["individual-loan"]);
@@ -172,8 +172,7 @@ describe("evaluateEligibility", () => {
     expect(ind.reasons.some((r) => r.code === "loan_above_cap")).toBe(true);
   });
 
-  // E10: loanAmount 200000 on A → new-swarnima eligible.
-  // E10: loanAmount 125000 with applyMode "shg" → group-loan eligible.
+  // E10: Base A with applyMode "shg" and loanAmount 125000 → group-loan status "eligible", rate percent 7.
   it("E10: loanAmount 125000 passes group-loan at cap", () => {
     const input: EligibilityAnswers = { ...BASE_A, applyMode: "shg", loanAmount: 125_000 };
     const result = evaluateEligibility(input);
@@ -241,8 +240,8 @@ describe("evaluateEligibility", () => {
     expect(group.rate?.percent).toBe(7);
   });
 
-  // E15: disability40 "yes": new-swarnima rate 4.75; mahila-samriddhi 3.75; individual-loan with loanAmount 400000 → 5.75; individual-loan with loanAmount 600000 → percent null (not confirmed) and NO concession applied; with no amount → first-slab text and still 5.75-style handling documented in your output.
-  it("E15: disability concession applies 0.25% reduction to confirmed rates", () => {
+  // E15: disability40 "yes": individual-loan rate percent 7 (100k) and 8 (400k), group-loan rate percent 7; each has note code "disability_concession"; disability40 "no" has no "disability_concession" note.
+  it("E15: disability concession adds disability_concession note to confirmed rates", () => {
     // disability40 "yes" with individual loan 100k (<=1.25L): rate remains 7%, concession note present
     const resInd100 = evaluateEligibility({ ...BASE_A, loanAmount: 100_000, disability40: "yes" });
     const ind100 = resInd100.schemes.find((s) => s.schemeId === "individual-loan")!;
@@ -267,7 +266,7 @@ describe("evaluateEligibility", () => {
     expect(indNoDis.notes.some((n) => n.code === "disability_concession")).toBe(false);
   });
 
-  // E16: {gender "man", applyMode "alone", backwardClass "yes"} (income + amount missing) → new-swarnima notEligible (definite failure beats missing); individual-loan needsInfo missing incomeBand.
+  // E16: {gender: "man", applyMode: "alone", backwardClass: "yes"} → group-loan status "notEligible" with code "wrong_apply_mode"; individual-loan status "needsInfo" missing "incomeBand".
   it("E16: Definite failure beats missing answers", () => {
     const input: EligibilityAnswers = {
       gender: "man",
@@ -285,7 +284,7 @@ describe("evaluateEligibility", () => {
     expect(ind.missing).toContain("incomeBand");
   });
 
-  // E17: loanRange only (no amount): "under1L" on A-without-amount → new-swarnima eligible, no loan note; "1to5L" → new-swarnima eligible WITH loan_amount_decides note; "5to15L" → new-swarnima notEligible loan_above_cap, individual-loan eligible; "above15L" → individual-loan eligible WITH loan_amount_decides note; "notSure" → eligible with the note.
+  // E17: loanRange on Base A without amount: "under1L" → individual-loan status "eligible", no "loan_amount_decides" note; "1to5L", "notSure", and no range → status "eligible" with note "loan_amount_decides"; "5to15L" and "above15L" → status "eligible".
   it("E17: loanRange bands drive fitting, straddling notes, and cap failures", () => {
     const baseWithoutAmount: EligibilityAnswers = { ...BASE_A, loanAmount: undefined };
 
@@ -381,7 +380,7 @@ describe("evaluateEligibility", () => {
     expect(res.schemes[0].missing).toContain("incomeBand");
   });
 
-  // E23: config sanity: unique ids; every rule has sourceUrl + lastVerified; where both percents are non-null they sum to 100; "general-loan" is NOT in SCHEME_RULES; exactly 4 active schemes.
+  // E23: config sanity: 2 schemes in SCHEME_RULES ("individual-loan", "group-loan"); "general-loan", "new-swarnima", "mahila-samriddhi" not in ids; every rule has https sourceUrl, lastVerified "2026-10-13", moratoriumMonths 3, non-null split percents sum to 100, slab repaymentYears > 0.
   it("E23: Config sanity checks on SCHEME_RULES", () => {
     expect(SCHEME_RULES).toHaveLength(2);
 
@@ -419,7 +418,7 @@ describe("evaluateEligibility", () => {
     expect(none.summary).toBe("noneEligible");
   });
 
-  // E25: individual-loan, answers = Base A without loanAmount, each loanRange: under1L → percent 6, status "confirmed"; 1to5L → 6 / confirmed; 5to15L → percent null, status "toConfirm", text contains "not confirmed"; above15L → percent null, "toConfirm". With disability40 "yes": 1to5L → 5.75; 5to15L → null (no concession). Also for new-swarnima with loanRange under1L → 5, and for 1to5L with disability "yes" → 4.75.
+  // E25: individual-loan on Base A without loanAmount: under1L → rate percent 7, confirmed, years 4; 1to5L, 5to15L, above15L → rate percent 8, confirmed, years 7; disability40 "yes" retains rate percent 8 with "disability_concession" note.
   it("E25: Rate selection respects loanRange and slab overlap", () => {
     const baseWithoutAmount: EligibilityAnswers = { ...BASE_A, loanAmount: undefined };
 
