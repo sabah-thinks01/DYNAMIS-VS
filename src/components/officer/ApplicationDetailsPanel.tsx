@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { X, Calendar, MapPin, Briefcase, FileText } from "lucide-react";
-import type { Applicant } from "@/types";
+import { X, Calendar, MapPin, Briefcase, FileText, History } from "lucide-react";
+import type { Applicant, AuditAction, AuditActorRole } from "@/types";
 import { evaluateEligibility } from "@/lib/eligibility/evaluateEligibility";
 import type { SchemeResult } from "@/lib/eligibility/types";
 import { planLoan } from "@/lib/loanPlanner/planLoan";
@@ -10,11 +10,27 @@ import { formatINR, formatLakh } from "@/lib/format";
 import { SchemeResultCard } from "@/components/entrepreneur/SchemeResultCard";
 import { SampleDataTag } from "@/components/shared/SampleDataTag";
 import { GuideNote } from "@/components/shared/GuideNote";
+import { StatusBadge, RiskBadge } from "./ApplicantTable";
+import { sortAuditEntries, formatAuditDateTime } from "@/lib/officer/audit";
 
 interface ApplicationDetailsPanelProps {
   applicant: Applicant;
   onClose: () => void;
 }
+
+const ACTION_LABELS: Record<AuditAction, string> = {
+  submitted: "Application Submitted",
+  documentsChecked: "Documents Verified",
+  noteAdded: "Officer Note",
+  statusChanged: "Status Updated",
+  riskFlagged: "Risk Flagged",
+};
+
+const ROLE_LABELS: Record<AuditActorRole, string> = {
+  applicant: "Applicant",
+  officer: "Officer",
+  system: "System",
+};
 
 const GENDER_LABELS: Record<string, string> = {
   woman: "Woman",
@@ -88,6 +104,9 @@ export function ApplicationDetailsPanel({
   const eligibleSchemes = eligibilityResult.schemes.filter((s) => s.status === "eligible");
   const needsInfoSchemes = eligibilityResult.schemes.filter((s) => s.status === "needsInfo");
   const notEligibleSchemes = eligibilityResult.schemes.filter((s) => s.status === "notEligible");
+
+  // Audit history entries sorted newest first
+  const historyEntries = sortAuditEntries(applicant.history || []);
 
   // 5. Loan Plan calculation (Change 5)
   // Use first eligible scheme. If none, check if any scheme is eligible when evaluated at its maxLoan.
@@ -234,28 +253,33 @@ export function ApplicationDetailsPanel({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
-              <div>
-                <span className="text-muted block">Status</span>
-                <span className="font-semibold text-main capitalize">{applicant.status.replace("_", " ")}</span>
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <StatusBadge status={applicant.status} />
+                <RiskBadge risk={applicant.riskLevel} />
               </div>
-              <div>
-                <span className="text-muted block">Viability Score</span>
-                <span className="font-semibold text-main">{applicant.viabilityScore} / 100</span>
-              </div>
-              <div>
-                <span className="text-muted block">Risk Level</span>
-                <span className="font-semibold text-main capitalize">{applicant.riskLevel} Risk</span>
-              </div>
-              {applicant.pincode && (
-                <div className="flex items-center gap-1.5 text-muted">
-                  <MapPin className="w-3.5 h-3.5 text-muted shrink-0" />
-                  <span>Pincode: <strong className="text-main">{applicant.pincode}</strong></span>
-                </div>
+
+              {applicant.status === "approved" && applicant.riskLevel === "high" && applicant.approvedRiskReason && (
+                <p className="text-xs text-muted leading-relaxed">
+                  {applicant.approvedRiskReason}
+                </p>
               )}
-              <div className="flex items-center gap-1.5 text-muted">
-                <Calendar className="w-3.5 h-3.5 text-muted shrink-0" />
-                <span>Submitted: <strong className="text-main">{applicant.submittedDate}</strong></span>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1 border-t border-border-default/40">
+                <div>
+                  <span className="text-muted block">Viability Score</span>
+                  <span className="font-semibold text-main">{applicant.viabilityScore} / 100</span>
+                </div>
+                {applicant.pincode && (
+                  <div className="flex items-center gap-1.5 text-muted">
+                    <MapPin className="w-3.5 h-3.5 text-muted shrink-0" />
+                    <span>Pincode: <strong className="text-main">{applicant.pincode}</strong></span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 text-muted">
+                  <Calendar className="w-3.5 h-3.5 text-muted shrink-0" />
+                  <span>Submitted: <strong className="text-main">{applicant.submittedDate}</strong></span>
+                </div>
               </div>
             </div>
           </div>
@@ -354,7 +378,52 @@ export function ApplicationDetailsPanel({
             {loanPlanNode}
           </div>
 
-          {/* 5. Guide Note */}
+          {/* 5. History */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-main uppercase tracking-wider text-muted flex items-center gap-1.5">
+              <History className="w-4 h-4" />
+              <span>History</span>
+            </h3>
+
+            <div className="p-4 sm:p-5 rounded-2xl border border-border-default bg-surface space-y-4">
+              {historyEntries.length === 0 ? (
+                <p className="text-xs text-muted">No history recorded.</p>
+              ) : (
+                <ol className="relative border-l border-border-default ml-2 sm:ml-3 space-y-4">
+                  {historyEntries.map((entry) => (
+                    <li key={entry.id} className="ml-4 space-y-1">
+                      <span className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full border border-border-default bg-surface-subtle" />
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-main">
+                            {ACTION_LABELS[entry.action] || entry.action}
+                          </span>
+                          <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-surface-subtle text-muted border border-border-default">
+                            {entry.actor.name} ({ROLE_LABELS[entry.actor.role] || entry.actor.role})
+                          </span>
+                        </div>
+                        <time className="text-[11px] text-muted">
+                          {formatAuditDateTime(entry.at)}
+                        </time>
+                      </div>
+
+                      {entry.action === "statusChanged" && entry.fromStatus && entry.toStatus && (
+                        <p className="text-xs font-semibold text-main">
+                          Status: <span className="capitalize">{entry.fromStatus.replace("_", " ")}</span> → <span className="capitalize">{entry.toStatus.replace("_", " ")}</span>
+                        </p>
+                      )}
+
+                      <p className="text-xs text-muted leading-relaxed">
+                        {entry.detail}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+
+          {/* 6. Guide Note */}
           <GuideNote />
         </div>
       </div>

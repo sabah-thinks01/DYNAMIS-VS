@@ -6,6 +6,47 @@ interface Props {
   onSelectApplicant?: (applicant: Applicant, triggerEl: HTMLElement) => void;
 }
 
+// Visual mapping for Status
+export function StatusBadge({ status }: { status: Applicant["status"] }) {
+  switch (status) {
+    case "approved":
+      // Approved is a SEMANTIC status — always green, never role-tinted.
+      // See globals.css: --status-good-* vs --accent-* distinction.
+      return (
+        <span className="px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--status-good-bg)] text-[var(--status-good)] border border-[var(--status-good-border)]">
+          Approved
+        </span>
+      );
+    case "needs_review":
+      return <span className="status-pill warning px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Needs Review</span>;
+    case "pending":
+      return <span className="bg-surface-subtle text-main border border-border-default px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Pending</span>;
+  }
+}
+
+// Visual mapping for Risk Level
+export function RiskBadge({ risk }: { risk: Applicant["riskLevel"] }) {
+  switch (risk) {
+    case "low":
+      // Low risk is a SEMANTIC status — always green, never role-tinted.
+      return (
+        <span className="font-semibold text-xs flex items-center gap-1.5 text-[var(--status-good)]">
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-[var(--status-good)] shadow-[0_0_4px_var(--status-good-glow)]"
+          />
+          Low Risk
+        </span>
+      );
+    case "medium":
+      return <span className="text-[var(--status-warning)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-warning)]" />Medium Risk</span>;
+    case "high":
+      return <span className="text-[var(--status-error)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-error)]" />High Risk</span>;
+  }
+}
+
+export const statusBadge = (status: Applicant["status"]) => <StatusBadge status={status} />;
+export const riskBadge = (risk: Applicant["riskLevel"]) => <RiskBadge risk={risk} />;
+
 export function ApplicantTable({ applicants, onSelectApplicant }: Props) {
   if (applicants.length === 0) {
     return (
@@ -14,44 +55,6 @@ export function ApplicantTable({ applicants, onSelectApplicant }: Props) {
       </div>
     );
   }
-
-  // Visual mapping for Status
-  const statusBadge = (status: Applicant["status"]) => {
-    switch (status) {
-      case "approved":
-        // Approved is a SEMANTIC status — always green, never role-tinted.
-        // See globals.css: --status-good-* vs --accent-* distinction.
-        return (
-          <span className="px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--status-good-bg)] text-[var(--status-good)] border border-[var(--status-good-border)]">
-            Approved
-          </span>
-        );
-      case "needs_review":
-        return <span className="status-pill warning px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Needs Review</span>;
-      case "pending":
-        return <span className="bg-surface-subtle text-main border border-border-default px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider">Pending</span>;
-    }
-  };
-
-  // Visual mapping for Risk Level
-  const riskBadge = (risk: Applicant["riskLevel"]) => {
-    switch (risk) {
-      case "low":
-        // Low risk is a SEMANTIC status — always green, never role-tinted.
-        return (
-          <span className="font-semibold text-xs flex items-center gap-1.5 text-[var(--status-good)]">
-            <span
-              className="w-1.5 h-1.5 rounded-full bg-[var(--status-good)] shadow-[0_0_4px_var(--status-good-glow)]"
-            />
-            Low Risk
-          </span>
-        );
-      case "medium":
-        return <span className="text-[var(--status-warning)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-warning)]" />Medium Risk</span>;
-      case "high":
-        return <span className="text-[var(--status-error)] font-semibold text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--status-error)]" />High Risk</span>;
-    }
-  };
 
   return (
     <div className="w-full overflow-x-auto">
@@ -69,10 +72,15 @@ export function ApplicantTable({ applicants, onSelectApplicant }: Props) {
         <tbody className="divide-y divide-border-default/60">
           {applicants.map((app) => (
             <tr key={app.id} className="hover:bg-surface-subtle/30 transition-colors">
-              <td className="p-4">
+              <td className="p-4 max-w-[280px]">
                 <p className="font-bold text-sm text-main">{app.name}</p>
                 <p className="text-xs text-muted mt-0.5">{app.businessType}</p>
                 <p className="text-xs text-muted mt-0.5">{app.schemeTier}</p>
+                {app.status === "approved" && app.riskLevel === "high" && app.approvedRiskReason && (
+                  <p className="text-xs text-muted mt-1 leading-relaxed break-words whitespace-normal">
+                    {app.approvedRiskReason}
+                  </p>
+                )}
               </td>
               <td className="p-4">
                 <p className="font-semibold text-sm text-main">

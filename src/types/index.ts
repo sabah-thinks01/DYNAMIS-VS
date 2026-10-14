@@ -69,6 +69,30 @@ export interface SchemeMatch {
 export type ApplicantStatus = 'pending' | 'needs_review' | 'approved';
 export type RiskLevel = 'low' | 'medium' | 'high';
 
+export type AuditActorRole = 'applicant' | 'officer' | 'system';
+
+export interface AuditActor {
+  name: string;
+  role: AuditActorRole;
+}
+
+export type AuditAction =
+  | 'submitted'
+  | 'documentsChecked'
+  | 'noteAdded'
+  | 'statusChanged'
+  | 'riskFlagged';
+
+export interface AuditEntry {
+  id: string;
+  at: string;
+  actor: AuditActor;
+  action: AuditAction;
+  detail: string;
+  fromStatus?: ApplicantStatus;
+  toStatus?: ApplicantStatus;
+}
+
 export interface Applicant {
   id: string;
   name: string;
@@ -81,6 +105,8 @@ export interface Applicant {
   projectCost: number;
   pincode?: string;
   eligibilityAnswers?: EligibilityAnswers;
+  approvedRiskReason?: string;
+  history?: AuditEntry[];
 }
 
 export interface OfficerStats {
