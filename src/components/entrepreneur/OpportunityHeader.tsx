@@ -73,9 +73,10 @@ export function OpportunityHeader({
       } else if (businessType === "other") {
         cardState = { kind: "otherBusiness" };
       } else {
+        const radius = Math.min(nearbyStats.effectiveRadiusKm || 10, 10);
         const result = computeMarketRoom({
           densityPerSqKm: geoResult.geo.densityPerSqKm,
-          radiusKm: nearbyStats.effectiveRadiusKm || 10,
+          radiusKm: radius,
           sellerCount: nearbyStats.sellerCount,
           sellerCountIsCapped: nearbyStats.capped,
         });
@@ -91,7 +92,7 @@ export function OpportunityHeader({
     }
   }
 
-  const radius = nearbyStats?.effectiveRadiusKm || 10;
+  const radius = Math.min(nearbyStats?.effectiveRadiusKm || 10, 10);
   const cardKind = cardState?.kind;
   const verdict = cardState?.kind === "verdict" ? cardState.verdict : undefined;
   const sellerCount = cardState?.kind === "verdict" ? cardState.sellerCount : undefined;
@@ -129,7 +130,7 @@ export function OpportunityHeader({
           location={sampleLocation}
           viabilityScore={sampleScore}
         />
-        <AlternativesCard />
+        <AlternativesCard mode="sample" />
       </div>
     );
   }
@@ -164,7 +165,14 @@ export function OpportunityHeader({
         radiusKm={radius}
         keyword={keyword}
       />
-      <AlternativesCard />
+      <AlternativesCard
+        mode={cardState.kind}
+        businessType={businessType || undefined}
+        centerLat={nearbyStats?.centerLat}
+        centerLng={nearbyStats?.centerLng}
+        radiusKm={radius}
+        peopleInReach={peopleInReach(densityPerSqKm || 0, radius)}
+      />
     </div>
   );
 }
